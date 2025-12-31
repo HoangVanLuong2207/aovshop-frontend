@@ -5,6 +5,7 @@ import { useAuthStore } from '../stores/auth'
 import Home from '../views/Home.vue'
 import Login from '../views/Login.vue'
 import Register from '../views/Register.vue'
+import VerifyEmail from '../views/VerifyEmail.vue'
 import Products from '../views/Products.vue'
 import ProductDetail from '../views/ProductDetail.vue'
 import Cart from '../views/Cart.vue'
@@ -28,6 +29,7 @@ const routes = [
     { path: '/', name: 'home', component: Home },
     { path: '/login', name: 'login', component: Login, meta: { guest: true } },
     { path: '/register', name: 'register', component: Register, meta: { guest: true } },
+    { path: '/verify-email/:token', name: 'verify-email', component: VerifyEmail },
     { path: '/products', name: 'products', component: Products },
     { path: '/products/:id', name: 'product-detail', component: ProductDetail },
 
