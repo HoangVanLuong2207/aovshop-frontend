@@ -92,7 +92,7 @@
 
 <script setup>
 import { ref, reactive } from 'vue'
-import api from '../api/axios'
+import api from '../api'
 
 const loading = ref(false)
 const error = ref('')
