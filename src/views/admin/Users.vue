@@ -81,8 +81,8 @@
               </select>
             </div>
             <div class="form-group">
-              <label>Số dư</label>
-              <input v-model.number="editForm.balance" type="number" class="form-input" />
+              <label>Cộng số dư (nhập số dương để cộng, âm để trừ)</label>
+              <input v-model.number="editForm.addBalance" type="number" class="form-input" placeholder="0" />
             </div>
           </div>
           <div class="modal-footer">
@@ -146,7 +146,12 @@ const loadUsers = async () => {
 
 const editUser = (user) => {
   editingUser.value = user
-  editForm.value = { ...user }
+  editForm.value = { 
+    name: user.name,
+    email: user.email,
+    role: user.role,
+    addBalance: 0  // Default to 0 for adding balance
+  }
   showModal.value = true
 }
 

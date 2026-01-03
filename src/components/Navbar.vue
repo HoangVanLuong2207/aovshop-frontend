@@ -9,6 +9,24 @@
       <!-- Desktop Nav -->
       <ul class="navbar-nav desktop-nav">
         <li><router-link to="/">Trang chủ</router-link></li>
+        <li class="nav-dropdown">
+          <button class="nav-dropdown-toggle" @click="showCategoryDropdown = !showCategoryDropdown">
+            Danh mục ▾
+          </button>
+          <div v-if="showCategoryDropdown" class="nav-dropdown-menu">
+            <router-link 
+              v-for="cat in categories" 
+              :key="cat.id" 
+              :to="`/products?category=${cat.id}`"
+              @click="showCategoryDropdown = false"
+            >
+              {{ cat.name }}
+            </router-link>
+            <router-link to="/categories" @click="showCategoryDropdown = false" class="view-all">
+              Xem tất cả →
+            </router-link>
+          </div>
+        </li>
         <li><router-link to="/products">Sản phẩm</router-link></li>
       </ul>
 
@@ -78,9 +96,21 @@
           <router-link to="/" class="mobile-nav-item" @click="closeMobileMenu">
             🏠 Trang chủ
           </router-link>
-          <router-link to="/products" class="mobile-nav-item" @click="closeMobileMenu">
+          <div class="mobile-nav-item mobile-category-header" @click="showMobileCategories = !showMobileCategories">
             📁 Danh mục
-          </router-link>
+            <span class="mobile-category-arrow" :class="{ open: showMobileCategories }">▾</span>
+          </div>
+          <div v-if="showMobileCategories" class="mobile-category-list">
+            <router-link 
+              v-for="cat in categories" 
+              :key="cat.id"
+              :to="`/products?category=${cat.id}`"
+              class="mobile-nav-item mobile-category-item"
+              @click="closeMobileMenu"
+            >
+              {{ cat.name }}
+            </router-link>
+          </div>
           <router-link to="/products" class="mobile-nav-item" @click="closeMobileMenu">
             📦 Sản phẩm
           </router-link>
@@ -133,12 +163,13 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
 import { useThemeStore } from '../stores/theme'
 import { useSettingsStore } from '../stores/settings'
+import { shopApi } from '../api'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -146,7 +177,10 @@ const cartStore = useCartStore()
 const themeStore = useThemeStore()
 const settingsStore = useSettingsStore()
 const showDropdown = ref(false)
+const showCategoryDropdown = ref(false)
+const showMobileCategories = ref(false)
 const isMobileMenuOpen = ref(false)
+const categories = ref([])
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -169,6 +203,15 @@ const logout = async () => {
   closeMobileMenu()
   router.push('/')
 }
+
+onMounted(async () => {
+  try {
+    const res = await shopApi.getCategories()
+    categories.value = res.data
+  } catch (error) {
+    console.error('Failed to load categories:', error)
+  }
+})
 </script>
 
 <style scoped>
@@ -183,6 +226,64 @@ const logout = async () => {
   height: 32px;
   width: auto;
   border-radius: 4px;
+}
+
+/* Nav Dropdown (Categories) */
+.nav-dropdown {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.nav-dropdown-toggle {
+  background: none;
+  border: none;
+  color: var(--text-secondary);
+  font-size: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0.875rem;
+  border-radius: var(--radius-sm);
+  transition: all 0.2s;
+  line-height: inherit;
+}
+
+.nav-dropdown-toggle:hover {
+  background: var(--bg-tertiary);
+  color: var(--primary-light);
+}
+
+.nav-dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 0.5rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  min-width: 200px;
+  box-shadow: var(--shadow-lg);
+  z-index: 100;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.nav-dropdown-menu a {
+  display: block;
+  padding: 0.75rem 1rem;
+  color: var(--text);
+  transition: background 0.2s;
+  font-size: 0.9rem;
+}
+
+.nav-dropdown-menu a:hover {
+  background: var(--bg-tertiary);
+}
+
+.nav-dropdown-menu .view-all {
+  border-top: 1px solid var(--border);
+  color: var(--primary);
+  font-weight: 500;
 }
 
 /* Desktop Dropdown */
@@ -406,6 +507,32 @@ const logout = async () => {
   width: 100%;
   justify-content: center;
   padding: 1rem;
+}
+
+/* Mobile Categories */
+.mobile-category-header {
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+}
+
+.mobile-category-arrow {
+  transition: transform 0.2s;
+}
+
+.mobile-category-arrow.open {
+  transform: rotate(180deg);
+}
+
+.mobile-category-list {
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  margin: 0.25rem 0;
+}
+
+.mobile-category-item {
+  padding-left: 2rem !important;
+  font-size: 0.9rem !important;
 }
 
 /* Mobile Responsive */

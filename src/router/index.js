@@ -8,6 +8,7 @@ import Register from '../views/Register.vue'
 import VerifyEmail from '../views/VerifyEmail.vue'
 import Products from '../views/Products.vue'
 import ProductDetail from '../views/ProductDetail.vue'
+import Categories from '../views/Categories.vue'
 import Cart from '../views/Cart.vue'
 import Checkout from '../views/Checkout.vue'
 import Orders from '../views/Orders.vue'
@@ -30,6 +31,7 @@ const routes = [
     { path: '/login', name: 'login', component: Login, meta: { guest: true } },
     { path: '/register', name: 'register', component: Register, meta: { guest: true } },
     { path: '/verify-email/:token', name: 'verify-email', component: VerifyEmail },
+    { path: '/categories', name: 'categories', component: Categories },
     { path: '/products', name: 'products', component: Products },
     { path: '/products/:id', name: 'product-detail', component: ProductDetail },
 
