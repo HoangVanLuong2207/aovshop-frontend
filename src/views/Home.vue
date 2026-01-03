@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <!-- Hero Section -->
-    <section class="hero" :style="settingsStore.shopBanner ? { backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.7), rgba(15, 15, 26, 0.8)), url(${settingsStore.shopBanner})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}">
+    <section class="hero" :style="settingsStore.shopBanner ? { backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.8), rgba(15, 15, 26, 0.9)), url(${settingsStore.shopBanner})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}">
       <div class="container">
         <h1 class="hero-title">{{ settingsStore.shopName }}</h1>
         <p class="hero-subtitle">Mua bán tài khoản, tướng, skin và vật phẩm game</p>
@@ -22,6 +22,7 @@
             :key="category.id"
             :to="`/products?category=${category.id}`"
             class="category-card"
+            :style="category.image ? { backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.7), rgba(15, 15, 26, 0.85)), url(${getImageUrl(category.image)})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}"
           >
             <div class="category-icon">
               <img 
@@ -160,9 +161,9 @@ onMounted(async () => {
 
 .hero-subtitle {
   font-size: 1.35rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.9);
   margin-bottom: 2.5rem;
-  opacity: 0.9;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
 }
 
 .hero .btn-primary {
@@ -274,11 +275,14 @@ onMounted(async () => {
   font-size: 1.35rem;
   margin-bottom: 0.5rem;
   font-weight: 600;
+  color: white;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
 }
 
 .category-card p {
-  color: var(--text-muted);
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.95rem;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
 /* Mobile Responsive */
