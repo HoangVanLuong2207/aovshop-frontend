@@ -1,7 +1,7 @@
 <template>
   <div class="home">
     <!-- Hero Section -->
-    <section class="hero">
+    <section class="hero" :style="settingsStore.shopBanner ? { backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.7), rgba(15, 15, 26, 0.8)), url(${settingsStore.shopBanner})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}">
       <div class="container">
         <h1 class="hero-title">{{ settingsStore.shopName }}</h1>
         <p class="hero-subtitle">Mua bán tài khoản, tướng, skin và vật phẩm game</p>
