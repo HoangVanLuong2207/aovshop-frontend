@@ -18,7 +18,11 @@
     </div>
 
     <Navbar v-if="!isAdminRoute" />
-    <router-view />
+    <router-view v-slot="{ Component, route }">
+      <Transition name="page" mode="out-in">
+        <component :is="Component" :key="route.path" />
+      </Transition>
+    </router-view>
   </div>
 </template>
 
@@ -192,6 +196,22 @@ onMounted(() => {
 .popup-footer .btn {
   padding: 0.875rem 2.5rem;
   font-size: 1rem;
+}
+
+/* Page Transition Animations */
+.page-enter-active,
+.page-leave-active {
+  transition: all 0.25s ease-out;
+}
+
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(12px);
+}
+
+.page-leave-to {
+  opacity: 0;
+  transform: translateY(-12px);
 }
 </style>
 
