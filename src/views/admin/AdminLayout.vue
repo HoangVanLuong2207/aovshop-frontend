@@ -7,7 +7,7 @@
         <span></span>
         <span></span>
       </button>
-      <router-link to="/" class="logo">AOV Shop</router-link>
+      <router-link to="/" class="logo">{{ settingsStore.shopName }}</router-link>
       <span class="badge badge-primary">Admin</span>
     </header>
 
@@ -20,7 +20,7 @@
 
     <aside class="admin-sidebar" :class="{ open: isSidebarOpen }">
       <div class="sidebar-header">
-        <router-link to="/" class="logo">AOV Shop</router-link>
+        <router-link to="/" class="logo">{{ settingsStore.shopName }}</router-link>
         <span class="badge badge-primary">Admin</span>
         <button class="close-sidebar-btn" @click="closeSidebar">✕</button>
       </div>
@@ -75,8 +75,10 @@
 <script setup>
 import { ref } from 'vue'
 import { useThemeStore } from '../../stores/theme'
+import { useSettingsStore } from '../../stores/settings'
 
 const themeStore = useThemeStore()
+const settingsStore = useSettingsStore()
 const isSidebarOpen = ref(false)
 
 const toggleSidebar = () => {

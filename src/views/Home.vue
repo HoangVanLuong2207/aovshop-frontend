@@ -3,7 +3,7 @@
     <!-- Hero Section -->
     <section class="hero">
       <div class="container">
-        <h1 class="hero-title">AOV Shop</h1>
+        <h1 class="hero-title">{{ settingsStore.shopName }}</h1>
         <p class="hero-subtitle">Mua bán tài khoản, tướng, skin và vật phẩm game</p>
         <router-link to="/products" class="btn btn-primary btn-lg">
           Khám phá ngay →
@@ -74,6 +74,9 @@ import { ref, onMounted } from 'vue'
 import { shopApi } from '../api'
 import ProductCard from '../components/ProductCard.vue'
 import { getImageUrl } from '../utils/image'
+import { useSettingsStore } from '../stores/settings'
+
+const settingsStore = useSettingsStore()
 
 const loading = ref(true)
 const categories = ref([])
