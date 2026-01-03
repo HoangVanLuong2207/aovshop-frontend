@@ -248,6 +248,9 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import api from '../api'
+import { useToast } from '../composables/useToast'
+
+const { toast } = useToast()
 
 const authStore = useAuthStore()
 
@@ -307,7 +310,7 @@ const statusText = (status) => {
 const copy = (text) => {
   if (text) {
     navigator.clipboard.writeText(text)
-    alert('Đã copy!')
+    toast.success('Đã copy!')
   }
 }
 
@@ -340,7 +343,7 @@ const selectPendingDeposit = async (tx) => {
     pollInterval = setInterval(checkStatus, 5000)
   } catch (error) {
     console.error('Failed to load payment info:', error)
-    alert('Không thể tải thông tin thanh toán')
+    toast.error('Không thể tải thông tin thanh toán')
   }
 }
 
@@ -401,7 +404,7 @@ const createOrder = async () => {
     stopPolling()
     pollInterval = setInterval(checkStatus, 5000)
   } catch (error) {
-    alert(error.response?.data?.message || 'Lỗi khi tạo đơn')
+    toast.error(error.response?.data?.message || 'Lỗi khi tạo đơn')
   } finally {
     creating.value = false
   }

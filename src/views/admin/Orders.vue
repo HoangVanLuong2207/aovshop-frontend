@@ -119,6 +119,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { adminApi } from '../../api'
+import { useToast } from '../../composables/useToast'
+
+const { toast } = useToast()
 
 const loading = ref(true)
 const orders = ref([])
@@ -146,7 +149,7 @@ const updateStatus = async (order) => {
   try {
     await adminApi.updateOrderStatus(order.id, order.status)
   } catch (error) {
-    alert(error.response?.data?.message || 'Cập nhật thất bại')
+    toast.error(error.response?.data?.message || 'Cập nhật thất bại')
     loadOrders()
   }
 }

@@ -56,6 +56,9 @@
 import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import { authApi } from '../api'
+import { useToast } from '../composables/useToast'
+
+const { toast } = useToast()
 
 const authStore = useAuthStore()
 
@@ -86,9 +89,9 @@ const updateProfile = async () => {
     const response = await authApi.updateProfile(profile)
     authStore.user = response.data.user
     localStorage.setItem('user', JSON.stringify(response.data.user))
-    alert('Cập nhật thành công!')
+    toast.success('Cập nhật thành công!')
   } catch (error) {
-    alert(error.response?.data?.message || 'Cập nhật thất bại')
+    toast.error(error.response?.data?.message || 'Cập nhật thất bại')
   } finally {
     updating.value = false
   }
@@ -96,7 +99,7 @@ const updateProfile = async () => {
 
 const changePassword = async () => {
   if (password.password !== password.password_confirmation) {
-    alert('Mật khẩu xác nhận không khớp')
+    toast.error('Mật khẩu xác nhận không khớp')
     return
   }
 
@@ -106,9 +109,9 @@ const changePassword = async () => {
     password.current_password = ''
     password.password = ''
     password.password_confirmation = ''
-    alert('Đổi mật khẩu thành công!')
+    toast.success('Đổi mật khẩu thành công!')
   } catch (error) {
-    alert(error.response?.data?.message || 'Đổi mật khẩu thất bại')
+    toast.error(error.response?.data?.message || 'Đổi mật khẩu thất bại')
   } finally {
     changingPassword.value = false
   }

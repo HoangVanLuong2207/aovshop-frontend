@@ -120,6 +120,9 @@ import { useCartStore } from '../stores/cart'
 import { useAuthStore } from '../stores/auth'
 import { orderApi } from '../api'
 import { getImageUrl } from '../utils/image'
+import { useToast } from '../composables/useToast'
+
+const { toast } = useToast()
 
 const router = useRouter()
 const cartStore = useCartStore()
@@ -182,11 +185,11 @@ const placeOrder = async () => {
     await authStore.fetchProfile()
     cartStore.clearCart()
     
-    alert('Thanh toán thành công!')
+    toast.success('Thanh toán thành công!')
     router.push('/orders')
   } catch (error) {
     console.error('Checkout error:', error)
-    alert(error.response?.data?.message || 'Thanh toán thất bại: ' + error.message)
+    toast.error(error.response?.data?.message || 'Thanh toán thất bại: ' + error.message)
   } finally {
     processing.value = false
   }

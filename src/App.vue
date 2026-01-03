@@ -18,11 +18,12 @@
     </div>
 
     <Navbar v-if="!isAdminRoute" />
-    <router-view v-slot="{ Component, route }">
-      <Transition name="page" mode="out-in">
-        <component :is="Component" :key="route.path" />
+    <router-view v-slot="{ Component, route: viewRoute }">
+      <Transition :name="isAdminRoute ? '' : 'page'" mode="out-in">
+        <component :is="Component" :key="isAdminRoute ? 'admin' : viewRoute.path" />
       </Transition>
     </router-view>
+    <ToastContainer />
   </div>
 </template>
 
@@ -30,6 +31,7 @@
 import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Navbar from './components/Navbar.vue'
+import ToastContainer from './components/ToastContainer.vue'
 import { useAuthStore } from './stores/auth'
 import { useSettingsStore } from './stores/settings'
 import api from './api'

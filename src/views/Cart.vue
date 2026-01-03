@@ -65,6 +65,9 @@
 <script setup>
 import { useCartStore } from '../stores/cart'
 import { getImageUrl } from '../utils/image'
+import { useToast } from '../composables/useToast'
+
+const { confirm } = useToast()
 
 const cartStore = useCartStore()
 
@@ -87,8 +90,9 @@ const removeItem = (productId) => {
   cartStore.removeItem(productId)
 }
 
-const clearCart = () => {
-  if (confirm('Bạn có chắc muốn xóa giỏ hàng?')) {
+const clearCart = async () => {
+  const confirmed = await confirm('Bạn có chắc muốn xóa giỏ hàng?', { type: 'warning' })
+  if (confirmed) {
     cartStore.clearCart()
   }
 }

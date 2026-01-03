@@ -50,6 +50,9 @@
 import { ref, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import api from '../api'
+import { useToast } from '../composables/useToast'
+
+const { toast } = useToast()
 
 const route = useRoute()
 
@@ -85,9 +88,9 @@ const resendVerification = async () => {
   resending.value = true
   try {
     await api.post('/auth/resend-verification', { email })
-    alert('Đã gửi lại email xác thực. Vui lòng kiểm tra hộp thư.')
+    toast.success('Đã gửi lại email xác thực. Vui lòng kiểm tra hộp thư.')
   } catch (error) {
-    alert(error.response?.data?.message || 'Không thể gửi email.')
+    toast.error(error.response?.data?.message || 'Không thể gửi email.')
   } finally {
     resending.value = false
   }

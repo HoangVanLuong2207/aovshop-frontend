@@ -89,6 +89,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { orderApi } from '../api'
+import { useToast } from '../composables/useToast'
+
+const { toast } = useToast()
 
 const loading = ref(true)
 const exporting = ref(false)
@@ -150,7 +153,7 @@ const changePage = (page) => {
 
 const copyToClipboard = (text) => {
   navigator.clipboard.writeText(text).then(() => {
-    alert('Đã sao chép tài khoản!')
+    toast.success('Đã sao chép tài khoản!')
   })
 }
 
@@ -176,7 +179,7 @@ const exportOrders = async () => {
     a.click()
     window.URL.revokeObjectURL(url)
   } catch (error) {
-    alert('Xuất file thất bại')
+    toast.error('Xuất file thất bại')
   } finally {
     exporting.value = false
   }

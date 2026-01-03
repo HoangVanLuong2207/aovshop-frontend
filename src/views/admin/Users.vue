@@ -100,6 +100,9 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
 import api from '../../api'
+import { useToast } from '../../composables/useToast'
+
+const { toast, confirm } = useToast()
 
 const users = ref([])
 const loading = ref(true)
@@ -160,20 +163,21 @@ const saveUser = async () => {
     await loadUsers()
     closeModal()
   } catch (error) {
-    alert(error.response?.data?.message || 'Lỗi khi lưu')
+    toast.error(error.response?.data?.message || 'Lỗi khi lưu')
   } finally {
     saving.value = false
   }
 }
 
 const deleteUser = async (user) => {
-  if (!confirm(`Xóa người dùng "${user.name}"?`)) return
+  const confirmed = await confirm(`Xóa người dùng "${user.name}"?`, { type: 'danger', title: 'Xóa người dùng' })
+  if (!confirmed) return
   
   try {
     await api.delete(`/admin/users/${user.id}`)
     await loadUsers()
   } catch (error) {
-    alert(error.response?.data?.message || 'Lỗi khi xóa')
+    toast.error(error.response?.data?.message || 'Lỗi khi xóa')
   }
 }
 

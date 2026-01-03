@@ -94,6 +94,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { adminApi } from '../../api'
+import { useToast } from '../../composables/useToast'
+
+const { toast } = useToast()
 
 const loading = ref(true)
 const depositing = ref(false)
@@ -160,9 +163,9 @@ const manualDeposit = async () => {
     depositForm.amount = 100000
     depositForm.description = ''
     loadTransactions()
-    alert('Nạp tiền thành công!')
+    toast.success('Nạp tiền thành công!')
   } catch (error) {
-    alert(error.response?.data?.message || 'Nạp tiền thất bại')
+    toast.error(error.response?.data?.message || 'Nạp tiền thất bại')
   } finally {
     depositing.value = false
   }

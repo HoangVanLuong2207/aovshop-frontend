@@ -63,7 +63,11 @@
     </aside>
 
     <main class="admin-main">
-      <router-view />
+      <router-view v-slot="{ Component, route }">
+        <Transition name="admin-page" mode="out-in">
+          <component :is="Component" :key="route.path" />
+        </Transition>
+      </router-view>
     </main>
   </div>
 </template>
@@ -275,5 +279,16 @@ const closeSidebar = () => {
     padding: 1rem;
     padding-top: 80px;
   }
+}
+
+/* Admin Page Transitions - Only for content, not sidebar */
+.admin-page-enter-active,
+.admin-page-leave-active {
+  transition: opacity 0.2s ease;
+}
+
+.admin-page-enter-from,
+.admin-page-leave-to {
+  opacity: 0;
 }
 </style>

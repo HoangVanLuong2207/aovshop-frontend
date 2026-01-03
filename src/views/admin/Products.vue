@@ -183,6 +183,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { adminApi } from '../../api'
+import { useToast } from '../../composables/useToast'
+
+const { toast, confirm } = useToast()
 
 const loading = ref(true)
 const saving = ref(false)
@@ -253,14 +256,15 @@ const addAccounts = async () => {
     if (product) product.stock = response.data.stock
     
   } catch (error) {
-    alert(error.response?.data?.message || 'Thêm tài accounts thất bại')
+    toast.error(error.response?.data?.message || 'Thêm tài accounts thất bại')
   } finally {
     addingAccounts.value = false
   }
 }
 
 const deleteAccount = async (account) => {
-  if (!confirm('Xóa tài khoản này?')) return
+  const confirmed = await confirm('Xóa tài khoản này?', { type: 'danger' })
+  if (!confirmed) return
   try {
     const response = await adminApi.deleteAccount(selectedProduct.value.id, account.id)
     
@@ -270,12 +274,13 @@ const deleteAccount = async (account) => {
     if (product) product.stock = response.data.stock
     
   } catch (error) {
-    alert(error.response?.data?.message || 'Xóa thất bại')
+    toast.error(error.response?.data?.message || 'Xóa thất bại')
   }
 }
 
 const clearAccounts = async () => {
-  if (!confirm('Xóa tất cả tài khoản chưa bán của sản phẩm này?')) return
+  const confirmed = await confirm('Xóa tất cả tài khoản chưa bán của sản phẩm này?', { type: 'danger', title: 'Xóa kho' })
+  if (!confirmed) return
   try {
     const response = await adminApi.clearAccounts(selectedProduct.value.id)
     
@@ -285,7 +290,7 @@ const clearAccounts = async () => {
     if (product) product.stock = response.data.stock
     
   } catch (error) {
-    alert(error.response?.data?.message || 'Xóa thất bại')
+    toast.error(error.response?.data?.message || 'Xóa thất bại')
   }
 }
 
@@ -395,21 +400,22 @@ const saveProduct = async () => {
     }
     closeModal()
   } catch (error) {
-    alert(error.response?.data?.message || 'Lưu thất bại')
+    toast.error(error.response?.data?.message || 'Lưu thất bại')
   } finally {
     saving.value = false
   }
 }
 
 const deleteProduct = async (product) => {
-  if (!confirm(`Xóa sản phẩm "${product.name}"?`)) return
+  const confirmed = await confirm(`Xóa sản phẩm "${product.name}"?`, { type: 'danger', title: 'Xóa sản phẩm' })
+  if (!confirmed) return
   
   try {
     await adminApi.deleteProduct(product.id)
     // Optimized: Update local state
     products.value = products.value.filter(p => p.id !== product.id)
   } catch (error) {
-    alert(error.response?.data?.message || 'Xóa thất bại')
+    toast.error(error.response?.data?.message || 'Xóa thất bại')
   }
 }
 

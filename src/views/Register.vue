@@ -93,6 +93,9 @@
 <script setup>
 import { ref, reactive } from 'vue'
 import api from '../api'
+import { useToast } from '../composables/useToast'
+
+const { toast } = useToast()
 
 const loading = ref(false)
 const error = ref('')
@@ -135,9 +138,9 @@ const resendEmail = async () => {
   resending.value = true
   try {
     await api.post('/auth/resend-verification', { email: form.email })
-    alert('Đã gửi lại email xác thực!')
+    toast.success('Đã gửi lại email xác thực!')
   } catch (err) {
-    alert(err.response?.data?.message || 'Không thể gửi email')
+    toast.error(err.response?.data?.message || 'Không thể gửi email')
   } finally {
     resending.value = false
   }

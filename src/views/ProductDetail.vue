@@ -83,6 +83,9 @@ import { shopApi } from '../api'
 import { useCartStore } from '../stores/cart'
 import { useAuthStore } from '../stores/auth'
 import { getImageUrl } from '../utils/image'
+import { useToast } from '../composables/useToast'
+
+const { toast } = useToast()
 
 const route = useRoute()
 const router = useRouter()
@@ -122,7 +125,7 @@ const addToCart = () => {
     return
   }
   cartStore.addItem(product.value, quantity.value)
-  alert('Đã thêm vào giỏ hàng!')
+  toast.success('Đã thêm vào giỏ hàng!')
 }
 
 const buyNow = () => {

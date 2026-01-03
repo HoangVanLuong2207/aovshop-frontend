@@ -87,6 +87,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { adminApi } from '../../api'
+import { useToast } from '../../composables/useToast'
+
+const { toast, confirm } = useToast()
 
 const loading = ref(true)
 const saving = ref(false)
@@ -171,21 +174,22 @@ const saveCategory = async () => {
     
     closeModal()
   } catch (error) {
-    alert(error.response?.data?.message || 'Lưu thất bại')
+    toast.error(error.response?.data?.message || 'Lưu thất bại')
   } finally {
     saving.value = false
   }
 }
 
 const deleteCategory = async (cat) => {
-  if (!confirm(`Xóa danh mục "${cat.name}"?`)) return
+  const confirmed = await confirm(`Xóa danh mục "${cat.name}"?`, { type: 'danger', title: 'Xóa danh mục' })
+  if (!confirmed) return
   
   try {
     await adminApi.deleteCategory(cat.id)
     // Optimized: Update local state
     categories.value = categories.value.filter(c => c.id !== cat.id)
   } catch (error) {
-    alert(error.response?.data?.message || 'Xóa thất bại')
+    toast.error(error.response?.data?.message || 'Xóa thất bại')
   }
 }
 

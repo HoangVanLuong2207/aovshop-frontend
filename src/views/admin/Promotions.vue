@@ -137,6 +137,9 @@
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
 import { adminApi } from '../../api'
+import { useToast } from '../../composables/useToast'
+
+const { toast, confirm } = useToast()
 
 const loading = ref(true)
 const saving = ref(false)
@@ -232,7 +235,7 @@ const savePromotion = async () => {
     
     closeModal()
   } catch (error) {
-    alert(error.response?.data?.message || 'Lưu thất bại')
+    toast.error(error.response?.data?.message || 'Lưu thất bại')
   } finally {
     saving.value = false
   }
@@ -243,19 +246,20 @@ const toggleActive = async (promo) => {
     await adminApi.togglePromotion(promo.id)
     promo.active = !promo.active
   } catch (error) {
-    alert('Cập nhật thất bại')
+    toast.error('Cập nhật thất bại')
   }
 }
 
 const deletePromotion = async (promo) => {
-  if (!confirm(`Xóa khuyến mãi "${promo.name}"?`)) return
+  const confirmed = await confirm(`Xóa khuyến mãi "${promo.name}"?`, { type: 'danger', title: 'Xóa khuyến mãi' })
+  if (!confirmed) return
   
   try {
     await adminApi.deletePromotion(promo.id)
     // Optimized: Update local state
     promotions.value = promotions.value.filter(p => p.id !== promo.id)
   } catch (error) {
-    alert(error.response?.data?.message || 'Xóa thất bại')
+    toast.error(error.response?.data?.message || 'Xóa thất bại')
   }
 }
 
