@@ -147,7 +147,10 @@ const closeModal = () => {
 }
 
 const saveCategory = async () => {
-  if (!form.name) return
+  if (!form.name) {
+    toast.error('Vui lòng nhập tên danh mục')
+    return
+  }
   
   saving.value = true
   try {
@@ -167,9 +170,11 @@ const saveCategory = async () => {
         categories.value[index].image = form.image
         categories.value[index].active = form.active
       }
+      toast.success('Cập nhật danh mục thành công!')
     } else {
       await adminApi.createCategory(data)
       await loadCategories()
+      toast.success('Thêm danh mục thành công!')
     }
     
     closeModal()
@@ -206,6 +211,26 @@ onMounted(loadCategories)
   max-height: 150px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+}
+
+/* Mobile responsive table - hide ID and Description columns */
+@media (max-width: 768px) {
+  .table th:nth-child(1),
+  .table td:nth-child(1),
+  .table th:nth-child(3),
+  .table td:nth-child(3) {
+    display: none;
+  }
+  
+  .table th, .table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
+  }
+  
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
 }
 </style>
 

@@ -16,7 +16,8 @@
               </div>
               <div class="form-group">
                 <label class="form-label">Email</label>
-                <input v-model="profile.email" type="email" class="form-input" required />
+                <input v-model="profile.email" type="email" class="form-input" disabled style="opacity: 0.7; cursor: not-allowed;" />
+                <small style="color: var(--text-muted);">Email không thể thay đổi</small>
               </div>
               <button type="submit" class="btn btn-primary" :disabled="updating">
                 {{ updating ? 'Đang lưu...' : 'Cập nhật' }}

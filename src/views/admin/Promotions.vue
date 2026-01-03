@@ -215,7 +215,18 @@ const closeModal = () => {
 }
 
 const savePromotion = async () => {
-  if (!form.code || !form.name) return
+  if (!form.code) {
+    toast.error('Vui lòng nhập mã khuyến mãi')
+    return
+  }
+  if (!form.name) {
+    toast.error('Vui lòng nhập tên khuyến mãi')
+    return
+  }
+  if (!form.value || form.value <= 0) {
+    toast.error('Vui lòng nhập giá trị giảm giá hợp lệ')
+    return
+  }
   
   saving.value = true
   try {
@@ -223,14 +234,15 @@ const savePromotion = async () => {
     
     if (editing.value) {
       await adminApi.updatePromotion(editing.value.id, data)
-      // Update local state
       const index = promotions.value.findIndex(p => p.id === editing.value.id)
       if (index !== -1) {
         Object.assign(promotions.value[index], data)
       }
+      toast.success('Cập nhật khuyến mãi thành công!')
     } else {
       await adminApi.createPromotion(data)
       await loadPromotions()
+      toast.success('Thêm khuyến mãi thành công!')
     }
     
     closeModal()

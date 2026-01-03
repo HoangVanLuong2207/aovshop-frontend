@@ -1,8 +1,8 @@
 <template>
   <div class="settings-page">
     <h1>Cài đặt hệ thống</h1>
-    <div style="display: flex;justify-content: space-around;">
-    <div>
+    <div class="settings-grid">
+    <div class="settings-column">
     <!-- Notification Section -->
     <div class="settings-section">
       <h2>📢 Thông báo trang web</h2>
@@ -136,7 +136,7 @@
     </div>
     </div>
 
-    <div>
+    <div class="settings-column">
     <div class="settings-section">
       <h2>🏦 Cấu hình SePay / Thanh toán</h2>
       
@@ -213,10 +213,6 @@
           </button>
         </div>
       </form>
-
-      <div v-if="message" :class="['message', messageType]">
-        {{ message }}
-      </div>
     </div>
 
     <div class="settings-section">
@@ -238,6 +234,9 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import api from '../../api'
+import { useToast } from '../../composables/useToast'
+
+const { toast } = useToast()
 
 const settings = ref({
   notification_enabled: false,
@@ -254,8 +253,6 @@ const settings = ref({
 })
 
 const saving = ref(false)
-const message = ref('')
-const messageType = ref('success')
 
 const webhookUrl = 'https://aovshop-backend.onrender.com/api/deposit/webhook'
 
@@ -275,7 +272,6 @@ const loadSettings = async () => {
 
 const saveSettings = async () => {
   saving.value = true
-  message.value = ''
   
   try {
     // Convert boolean to string for backend
@@ -284,11 +280,9 @@ const saveSettings = async () => {
       dataToSend.notification_enabled = dataToSend.notification_enabled ? 'true' : 'false'
     }
     await api.post('/admin/settings', dataToSend)
-    message.value = 'Cài đặt đã được lưu thành công!'
-    messageType.value = 'success'
+    toast.success('Cài đặt đã được lưu thành công!')
   } catch (error) {
-    message.value = 'Lỗi khi lưu cài đặt: ' + (error.response?.data?.message || error.message)
-    messageType.value = 'error'
+    toast.error('Lỗi khi lưu cài đặt: ' + (error.response?.data?.message || error.message))
   } finally {
     saving.value = false
   }
@@ -296,9 +290,7 @@ const saveSettings = async () => {
 
 const copyWebhook = () => {
   navigator.clipboard.writeText(webhookUrl)
-  message.value = 'Đã copy Webhook URL!'
-  messageType.value = 'success'
-  setTimeout(() => message.value = '', 2000)
+  toast.success('Đã copy Webhook URL!')
 }
 
 // Rich text editor functions
@@ -355,6 +347,27 @@ onMounted(loadSettings)
 <style scoped>
 .settings-page {
   padding: 20px;
+}
+
+.settings-grid {
+  display: flex;
+  justify-content: space-around;
+  gap: 24px;
+}
+
+.settings-column {
+  flex: 1;
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .settings-grid {
+    flex-direction: column;
+  }
+  
+  .settings-column {
+    width: 100%;
+  }
 }
 
 .settings-section {

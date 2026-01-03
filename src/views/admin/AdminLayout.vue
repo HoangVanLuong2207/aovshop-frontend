@@ -247,9 +247,11 @@ const closeSidebar = () => {
 
   .admin-sidebar {
     position: fixed;
-    left: -280px;
+    left: -100%;
     top: 0;
-    z-index: 999;
+    width: 280px;
+    max-width: 85vw;
+    z-index: 1001;
     transition: left 0.3s ease;
   }
 
@@ -268,6 +270,8 @@ const closeSidebar = () => {
   .sidebar-overlay {
     display: block;
     pointer-events: none;
+    backdrop-filter: blur(2px);
+    z-index: 1000;
   }
 
   .sidebar-overlay.active {

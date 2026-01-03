@@ -161,6 +161,7 @@ const saveUser = async () => {
   try {
     await api.put(`/admin/users/${editingUser.value.id}`, editForm.value)
     await loadUsers()
+    toast.success('Cập nhật người dùng thành công!')
     closeModal()
   } catch (error) {
     toast.error(error.response?.data?.message || 'Lỗi khi lưu')

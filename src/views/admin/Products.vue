@@ -254,6 +254,7 @@ const addAccounts = async () => {
     accounts.value = response.data.accounts
     const product = products.value.find(p => p.id === selectedProduct.value.id)
     if (product) product.stock = response.data.stock
+    toast.success(`Thêm ${response.data.added || 'các'} tài khoản thành công!`)
     
   } catch (error) {
     toast.error(error.response?.data?.message || 'Thêm tài accounts thất bại')
@@ -369,9 +370,16 @@ const closeModal = () => {
 }
 
 const saveProduct = async () => {
-  console.log('Attempting to save product:', form)
-  if (!form.name || !form.category_id) {
-    console.warn('Save blocked: Missing name or category_id')
+  if (!form.name) {
+    toast.error('Vui lòng nhập tên sản phẩm')
+    return
+  }
+  if (!form.category_id) {
+    toast.error('Vui lòng chọn danh mục')
+    return
+  }
+  if (!form.price || form.price <= 0) {
+    toast.error('Vui lòng nhập giá hợp lệ')
     return
   }
   
@@ -394,9 +402,11 @@ const saveProduct = async () => {
       if (index !== -1) {
         Object.assign(products.value[index], form)
       }
+      toast.success('Cập nhật sản phẩm thành công!')
     } else {
       await adminApi.createProduct(data)
       await loadProducts()
+      toast.success('Thêm sản phẩm thành công!')
     }
     closeModal()
   } catch (error) {
@@ -440,5 +450,37 @@ onMounted(() => {
   max-height: 150px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+}
+
+/* Mobile responsive table */
+@media (max-width: 768px) {
+  .table th:nth-child(1),
+  .table td:nth-child(1),
+  .table th:nth-child(3),
+  .table td:nth-child(3),
+  .table th:nth-child(5),
+  .table td:nth-child(5),
+  .table th:nth-child(7),
+  .table td:nth-child(7) {
+    display: none;
+  }
+  
+  .table th, .table td {
+    padding: 0.5rem 0.25rem;
+    font-size: 0.85rem;
+  }
+  
+  .btn-sm {
+    padding: 0.25rem 0.5rem;
+    font-size: 0.75rem;
+  }
+  
+  .filters {
+    flex-wrap: wrap;
+  }
+  
+  .filters .form-input {
+    width: 100% !important;
+  }
 }
 </style>
