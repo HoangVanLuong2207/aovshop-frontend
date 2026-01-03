@@ -1,13 +1,41 @@
 <template>
   <div class="home">
-    <!-- Hero Section -->
-    <section class="hero" :style="settingsStore.shopBanner ? { backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.8), rgba(15, 15, 26, 0.9)), url(${settingsStore.shopBanner})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}">
-      <div class="container">
-        <h1 class="hero-title">{{ settingsStore.shopName }}</h1>
-        <p class="hero-subtitle">Mua bán tài khoản, tướng, skin và vật phẩm game</p>
-        <router-link to="/products" class="btn btn-primary btn-lg">
-          Khám phá ngay →
-        </router-link>
+    <!-- Hero Section with Banner Slider -->
+    <section class="hero">
+      <!-- Slider Container -->
+      <div class="slider-container" v-if="bannerImages.length > 0">
+        <div class="slider-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+          <div 
+            v-for="(banner, idx) in bannerImages" 
+            :key="idx" 
+            class="slider-slide"
+            :style="{ backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.8), rgba(15, 15, 26, 0.9)), url(${banner})` }"
+          ></div>
+        </div>
+      </div>
+      <!-- Fallback gradient khi không có banner -->
+      <div v-else class="slider-fallback"></div>
+      
+      <!-- Content overlay -->
+      <div class="hero-content">
+        <div class="container">
+          <h1 class="hero-title">{{ settingsStore.shopName }}</h1>
+          <p class="hero-subtitle">Mua bán tài khoản, tướng, skin và vật phẩm game</p>
+          <router-link to="/products" class="btn btn-primary btn-lg">
+            Khám phá ngay →
+          </router-link>
+        </div>
+      </div>
+      
+      <!-- Slider Navigation (nếu có nhiều banner) -->
+      <div v-if="bannerImages.length > 1" class="slider-dots">
+        <button 
+          v-for="(_, idx) in bannerImages" 
+          :key="idx" 
+          class="slider-dot" 
+          :class="{ active: currentSlide === idx }"
+          @click="goToSlide(idx)"
+        ></button>
       </div>
     </section>
 
@@ -71,7 +99,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
 import { shopApi } from '../api'
 import ProductCard from '../components/ProductCard.vue'
 import { getImageUrl } from '../utils/image'
@@ -84,7 +112,66 @@ const categories = ref([])
 const featuredProducts = ref([])
 const newProducts = ref([])
 
+// Banner Slider Logic
+const currentSlide = ref(0)
+let slideInterval = null
+
+const bannerImages = computed(() => {
+  const banner = settingsStore.shopBanner
+  if (!banner) return []
+  
+  try {
+    const parsed = JSON.parse(banner)
+    if (Array.isArray(parsed)) {
+      return parsed.filter(b => b && b.trim())
+    }
+  } catch {
+    // Not JSON, treat as single URL
+  }
+  return banner.trim() ? [banner] : []
+})
+
+const goToSlide = (index) => {
+  currentSlide.value = index
+  resetAutoSlide()
+}
+
+const nextSlide = () => {
+  if (bannerImages.value.length > 1) {
+    currentSlide.value = (currentSlide.value + 1) % bannerImages.value.length
+  }
+}
+
+const stopAutoSlide = () => {
+  if (slideInterval) {
+    clearInterval(slideInterval)
+    slideInterval = null
+  }
+}
+
+const startAutoSlide = () => {
+  stopAutoSlide() // Luôn clear trước khi start mới
+  if (bannerImages.value.length > 1) {
+    slideInterval = setInterval(nextSlide, 5000)
+  }
+}
+
+const resetAutoSlide = () => {
+  startAutoSlide()
+}
+
+// Chỉ reset khi bannerImages thay đổi thực sự
+watch(bannerImages, (newVal, oldVal) => {
+  if (JSON.stringify(newVal) !== JSON.stringify(oldVal)) {
+    currentSlide.value = 0
+    resetAutoSlide()
+  }
+})
+
 onMounted(async () => {
+  // Luôn refresh settings để lấy banner mới nhất
+  await settingsStore.refreshShopInfo()
+  
   try {
     const [catRes, featuredRes, newRes] = await Promise.all([
       shopApi.getCategories(),
@@ -99,6 +186,12 @@ onMounted(async () => {
   } finally {
     loading.value = false
   }
+  
+  startAutoSlide()
+})
+
+onUnmounted(() => {
+  stopAutoSlide()
 })
 </script>
 
@@ -106,12 +199,84 @@ onMounted(async () => {
 /* ===== HERO SECTION ===== */
 .hero {
   position: relative;
-  padding: 6rem 0;
+  min-height: 400px;
   text-align: center;
   overflow: hidden;
+}
+
+/* Slider Container */
+.slider-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.slider-track {
+  display: flex;
+  height: 100%;
+  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slider-slide {
+  flex-shrink: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+}
+
+.slider-fallback {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   background: linear-gradient(-45deg, #0f0f1a, #1a1a3e, #2d1b4e, #1a2e4a);
   background-size: 400% 400%;
   animation: gradientShift 15s ease infinite;
+}
+
+/* Hero Content Overlay */
+.hero-content {
+  position: relative;
+  z-index: 5;
+  padding: 6rem 0;
+}
+
+/* Banner Slider Dots */
+.slider-dots {
+  position: absolute;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 10px;
+  z-index: 10;
+}
+
+.slider-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.6);
+  background: transparent;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  padding: 0;
+}
+
+.slider-dot:hover {
+  border-color: white;
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.slider-dot.active {
+  background: white;
+  border-color: white;
+  transform: scale(1.2);
 }
 
 .hero::before,
@@ -161,9 +326,20 @@ onMounted(async () => {
 
 .hero-subtitle {
   font-size: 1.35rem;
-  color: rgba(255, 255, 255, 0.9);
+  font-weight: 500;
+  background: linear-gradient(90deg, 
+    #ff6b6b, #ffa94d, #ffd43b, #69db7c, #74c0fc, #b197fc, #f783ac, #ff6b6b);
+  background-size: 300% auto;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
   margin-bottom: 2.5rem;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  animation: rgb-shift 4s linear infinite;
+}
+
+@keyframes rgb-shift {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 100% 50%; }
 }
 
 .hero .btn-primary {

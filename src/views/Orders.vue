@@ -163,19 +163,26 @@ const exportOrders = async () => {
     const response = await orderApi.exportOrders()
     const data = response.data
 
-    // Create CSV content
-    let csv = 'ID,Ngày,Trạng thái,Tạm tính,Giảm giá,Tổng,Sản phẩm\n'
+    // Create text content theo format yêu cầu
+    let content = ''
     data.orders.forEach(order => {
-      const items = order.items.map(i => `${i.name} x${i.quantity}`).join('; ')
-      csv += `${order.id},"${order.date}",${order.status},${order.subtotal},${order.discount},${order.total},"${items}"\n`
+      const accounts = order.accounts || []
+      const totalQuantity = order.items.reduce((sum, i) => sum + i.quantity, 0)
+      
+      content += `ID: ${order.id}\n`
+      content += `Số lượng: ${totalQuantity}\n`
+      accounts.forEach(acc => {
+        content += `${acc}\n`
+      })
+      content += '\n' // Dòng trống giữa các đơn
     })
 
-    // Download
-    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' })
+    // Download as .txt
+    const blob = new Blob(['\ufeff' + content], { type: 'text/plain;charset=utf-8' })
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `orders_${new Date().toISOString().split('T')[0]}.csv`
+    a.download = `orders_${new Date().toISOString().split('T')[0]}.txt`
     a.click()
     window.URL.revokeObjectURL(url)
   } catch (error) {

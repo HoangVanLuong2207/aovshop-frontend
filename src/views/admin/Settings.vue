@@ -103,26 +103,38 @@
         </div>
 
         <div class="form-group">
-          <label>Banner URL</label>
-          <input 
-            type="url" 
-            v-model="settings.shop_banner" 
-            class="form-input"
-            placeholder="https://example.com/banner.png"
-          />
-          <small>Link ảnh banner trang chủ (khuyến nghị 1200x400px)</small>
+          <label>Banner URLs (Slider)</label>
+          <div class="banner-list">
+            <div v-for="(banner, index) in bannerList" :key="index" class="banner-item">
+              <input 
+                type="url" 
+                v-model="bannerList[index]" 
+                class="form-input"
+                :placeholder="`Banner ${index + 1}: https://example.com/banner.png`"
+              />
+              <button type="button" class="btn btn-danger btn-sm" @click="removeBanner(index)" v-if="bannerList.length > 1">
+                ✕
+              </button>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm" @click="addBanner" style="margin-top: 8px;">
+            + Thêm Banner
+          </button>
+          <small>Link ảnh banner trang chủ (khuyến nghị 1200x400px). Nhiều ảnh sẽ chạy slider.</small>
         </div>
 
-        <div v-if="settings.shop_logo || settings.shop_banner" class="preview-section">
+        <div v-if="settings.shop_logo || bannerList.some(b => b)" class="preview-section">
           <h4>Xem trước:</h4>
           <div class="preview-images">
             <div v-if="settings.shop_logo" class="preview-item">
               <span>Logo:</span>
               <img :src="settings.shop_logo" alt="Logo" class="preview-logo" />
             </div>
-            <div v-if="settings.shop_banner" class="preview-item">
-              <span>Banner:</span>
-              <img :src="settings.shop_banner" alt="Banner" class="preview-banner" />
+            <div v-if="bannerList.some(b => b)" class="preview-item banner-preview-list">
+              <span>Banner ({{ bannerList.filter(b => b).length }} ảnh):</span>
+              <div class="banner-preview-grid">
+                <img v-for="(banner, idx) in bannerList.filter(b => b)" :key="idx" :src="banner" alt="Banner" class="preview-banner-thumb" />
+              </div>
             </div>
           </div>
         </div>
@@ -235,8 +247,10 @@
 import { ref, onMounted } from 'vue'
 import api from '../../api'
 import { useToast } from '../../composables/useToast'
+import { useSettingsStore } from '../../stores/settings'
 
 const { toast } = useToast()
+const settingsStore = useSettingsStore()
 
 const settings = ref({
   notification_enabled: false,
@@ -256,6 +270,8 @@ const saving = ref(false)
 
 const webhookUrl = 'https://aovshop-backend.onrender.com/api/deposit/webhook'
 
+const bannerList = ref([''])
+
 const loadSettings = async () => {
   try {
     const response = await api.get('/admin/settings')
@@ -263,6 +279,19 @@ const loadSettings = async () => {
     // Convert notification_enabled from string to boolean
     if (data.notification_enabled !== undefined) {
       data.notification_enabled = data.notification_enabled === 'true' || data.notification_enabled === true
+    }
+    // Parse shop_banner JSON array
+    if (data.shop_banner) {
+      try {
+        const parsed = JSON.parse(data.shop_banner)
+        if (Array.isArray(parsed)) {
+          bannerList.value = parsed.length > 0 ? parsed : ['']
+        } else {
+          bannerList.value = [data.shop_banner]
+        }
+      } catch {
+        bannerList.value = [data.shop_banner]
+      }
     }
     settings.value = { ...settings.value, ...data }
   } catch (error) {
@@ -279,13 +308,29 @@ const saveSettings = async () => {
     if (dataToSend.notification_enabled !== undefined) {
       dataToSend.notification_enabled = dataToSend.notification_enabled ? 'true' : 'false'
     }
+    // Serialize bannerList to JSON
+    const validBanners = bannerList.value.filter(b => b && b.trim())
+    dataToSend.shop_banner = validBanners.length > 0 ? JSON.stringify(validBanners) : ''
+    
     await api.post('/admin/settings', dataToSend)
+    
+    // Refresh settings store để cập nhật banner ngay lập tức
+    await settingsStore.refreshShopInfo()
+    
     toast.success('Cài đặt đã được lưu thành công!')
   } catch (error) {
     toast.error('Lỗi khi lưu cài đặt: ' + (error.response?.data?.message || error.message))
   } finally {
     saving.value = false
   }
+}
+
+const addBanner = () => {
+  bannerList.value.push('')
+}
+
+const removeBanner = (index) => {
+  bannerList.value.splice(index, 1)
 }
 
 const copyWebhook = () => {
@@ -662,5 +707,42 @@ small {
   max-width: 100%;
   border-radius: 8px;
   margin: 8px 0;
+}
+
+/* Banner List Styles */
+.banner-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.banner-item {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.banner-item .form-input {
+  flex: 1;
+}
+
+.banner-preview-list {
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.banner-preview-grid {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 8px;
+}
+
+.preview-banner-thumb {
+  max-height: 60px;
+  max-width: 150px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid var(--border);
 }
 </style>
