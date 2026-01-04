@@ -57,25 +57,29 @@
               :class="{ 'no-transition': categoryResetting }"
               :style="{ transform: `translateX(-${categorySlide * (100 / categoriesPerView)}%)` }"
             >
-              <router-link 
+              <div 
                 v-for="(category, idx) in extendedCategories" 
                 :key="'cat-' + idx"
-                :to="`/products?category=${category.id}`"
-                class="category-card carousel-item"
+                class="carousel-item category-slide"
                 :style="{ width: `${100 / categoriesPerView}%` }"
               >
-                <div class="category-icon">
-                  <img 
-                    v-if="category.image" 
-                    :src="getImageUrl(category.image)" 
-                    :alt="category.name"
-                    class="category-img"
-                  />
-                  <span v-else>📁</span>
-                </div>
-                <h3>{{ category.name }}</h3>
-                <p>{{ category.products_count }} sản phẩm</p>
-              </router-link>
+                <router-link 
+                  :to="`/products?category=${category.id}`"
+                  class="category-card"
+                >
+                  <div class="category-icon">
+                    <img 
+                      v-if="category.image" 
+                      :src="getImageUrl(category.image)" 
+                      :alt="category.name"
+                      class="category-img"
+                    />
+                    <span v-else>📁</span>
+                  </div>
+                  <h3>{{ category.name }}</h3>
+                  <p>{{ category.products_count }} sản phẩm</p>
+                </router-link>
+              </div>
             </div>
           </div>
           <button class="carousel-arrow carousel-arrow-right" @click="nextCategorySlide" v-if="categories.length > categoriesPerView">›</button>
@@ -470,7 +474,6 @@ onUnmounted(() => {
 
 .carousel-track {
   display: flex;
-  margin: 0 -8px;
   transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
@@ -484,13 +487,14 @@ onUnmounted(() => {
   box-sizing: border-box;
 }
 
-/* Category cards need more spacing */
-.category-card.carousel-item {
-  padding: 0;
+/* Category slide wrapper - holds the card with spacing */
+.category-slide {
+  padding: 0 10px;
 }
 
-.category-carousel-track {
-  gap: 20px;
+.category-slide .category-card {
+  display: block;
+  height: 100%;
 }
 
 .carousel-arrow {
