@@ -4,9 +4,14 @@
     <section class="hero">
       <!-- Slider Container -->
       <div class="slider-container" v-if="bannerImages.length > 0">
-        <div class="slider-track" :style="{ transform: `translateX(-${currentSlide * 100}%)` }">
+        <div 
+          class="slider-track" 
+          :class="{ 'no-transition': isResetting }"
+          :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
+        >
+          <!-- Original slides + 1 cloned first slide for seamless loop -->
           <div 
-            v-for="(banner, idx) in bannerImages" 
+            v-for="(banner, idx) in extendedBannerImages" 
             :key="idx" 
             class="slider-slide"
             :style="{ backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.8), rgba(15, 15, 26, 0.9)), url(${banner})` }"
@@ -21,9 +26,9 @@
         <div class="container">
           <h1 class="hero-title">{{ settingsStore.shopName }}</h1>
           <p class="hero-subtitle">Mua bán tài khoản, tướng, skin và vật phẩm game</p>
-          <router-link to="/products" class="btn btn-primary btn-lg">
+          <button @click="scrollToCategories" class="btn btn-primary btn-lg">
             Khám phá ngay →
-          </router-link>
+          </button>
         </div>
       </div>
       
@@ -39,59 +44,95 @@
       </div>
     </section>
 
-    <!-- Categories -->
-    <section class="section">
+    <!-- Categories Carousel -->
+    <section class="section" id="categories-section" ref="categoriesSection">
       <div class="container">
         <h2 class="section-title">Danh mục sản phẩm</h2>
         <div v-if="loading" class="loading"><div class="spinner"></div></div>
-        <div v-else class="grid grid-3">
-          <router-link 
-            v-for="category in categories" 
-            :key="category.id"
-            :to="`/products?category=${category.id}`"
-            class="category-card"
-            :style="category.image ? { backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.7), rgba(15, 15, 26, 0.85)), url(${getImageUrl(category.image)})`, backgroundSize: 'cover', backgroundPosition: 'center' } : {}"
-          >
-            <div class="category-icon">
-              <img 
-                v-if="category.image" 
-                :src="getImageUrl(category.image)" 
-                :alt="category.name"
-                class="category-img"
-              />
-              <span v-else>📁</span>
+        <div v-else-if="categories.length > 0" class="carousel-wrapper">
+          <button class="carousel-arrow carousel-arrow-left" @click="prevCategorySlide" v-if="categories.length > categoriesPerView">‹</button>
+          <div class="carousel-container" ref="categoryCarousel">
+            <div 
+              class="carousel-track category-carousel-track"
+              :class="{ 'no-transition': categoryResetting }"
+              :style="{ transform: `translateX(-${categorySlide * (100 / categoriesPerView)}%)` }"
+            >
+              <router-link 
+                v-for="(category, idx) in extendedCategories" 
+                :key="'cat-' + idx"
+                :to="`/products?category=${category.id}`"
+                class="category-card carousel-item"
+                :style="{ width: `${100 / categoriesPerView}%` }"
+              >
+                <div class="category-icon">
+                  <img 
+                    v-if="category.image" 
+                    :src="getImageUrl(category.image)" 
+                    :alt="category.name"
+                    class="category-img"
+                  />
+                  <span v-else>📁</span>
+                </div>
+                <h3>{{ category.name }}</h3>
+                <p>{{ category.products_count }} sản phẩm</p>
+              </router-link>
             </div>
-            <h3>{{ category.name }}</h3>
-            <p>{{ category.products_count }} sản phẩm</p>
-          </router-link>
+          </div>
+          <button class="carousel-arrow carousel-arrow-right" @click="nextCategorySlide" v-if="categories.length > categoriesPerView">›</button>
         </div>
       </div>
     </section>
 
-    <!-- Featured Products -->
+    <!-- Featured Products Carousel -->
     <section class="section" v-if="featuredProducts.length">
       <div class="container">
         <h2 class="section-title">🔥 Đang giảm giá</h2>
-        <div class="grid grid-4">
-          <ProductCard 
-            v-for="product in featuredProducts" 
-            :key="product.id" 
-            :product="product"
-          />
+        <div class="carousel-wrapper">
+          <button class="carousel-arrow carousel-arrow-left" @click="prevFeaturedSlide" v-if="featuredProducts.length > productsPerView">‹</button>
+          <div class="carousel-container">
+            <div 
+              class="carousel-track"
+              :class="{ 'no-transition': featuredResetting }"
+              :style="{ transform: `translateX(-${featuredSlide * (100 / productsPerView)}%)` }"
+            >
+              <div 
+                v-for="(product, idx) in extendedFeaturedProducts" 
+                :key="'featured-' + idx"
+                class="carousel-item"
+                :style="{ width: `${100 / productsPerView}%` }"
+              >
+                <ProductCard :product="product" />
+              </div>
+            </div>
+          </div>
+          <button class="carousel-arrow carousel-arrow-right" @click="nextFeaturedSlide" v-if="featuredProducts.length > productsPerView">›</button>
         </div>
       </div>
     </section>
 
-    <!-- New Products -->
+    <!-- New Products Carousel -->
     <section class="section" v-if="newProducts.length">
       <div class="container">
         <h2 class="section-title">✨ Sản phẩm mới</h2>
-        <div class="grid grid-4">
-          <ProductCard 
-            v-for="product in newProducts" 
-            :key="product.id" 
-            :product="product"
-          />
+        <div class="carousel-wrapper">
+          <button class="carousel-arrow carousel-arrow-left" @click="prevNewSlide" v-if="newProducts.length > productsPerView">‹</button>
+          <div class="carousel-container">
+            <div 
+              class="carousel-track"
+              :class="{ 'no-transition': newResetting }"
+              :style="{ transform: `translateX(-${newSlide * (100 / productsPerView)}%)` }"
+            >
+              <div 
+                v-for="(product, idx) in extendedNewProducts" 
+                :key="'new-' + idx"
+                class="carousel-item"
+                :style="{ width: `${100 / productsPerView}%` }"
+              >
+                <ProductCard :product="product" />
+              </div>
+            </div>
+          </div>
+          <button class="carousel-arrow carousel-arrow-right" @click="nextNewSlide" v-if="newProducts.length > productsPerView">›</button>
         </div>
       </div>
     </section>
@@ -111,9 +152,39 @@ const loading = ref(true)
 const categories = ref([])
 const featuredProducts = ref([])
 const newProducts = ref([])
+const categoriesSection = ref(null)
+
+// Scroll to categories section with slower animation
+const scrollToCategories = () => {
+  if (categoriesSection.value) {
+    const targetPosition = categoriesSection.value.offsetTop
+    const startPosition = window.pageYOffset
+    const distance = targetPosition - startPosition
+    const duration = 1200 // 1.2 seconds
+    let startTime = null
+
+    const animation = (currentTime) => {
+      if (startTime === null) startTime = currentTime
+      const timeElapsed = currentTime - startTime
+      const progress = Math.min(timeElapsed / duration, 1)
+      
+      // Easing function for smooth deceleration
+      const easeOutCubic = 1 - Math.pow(1 - progress, 3)
+      
+      window.scrollTo(0, startPosition + distance * easeOutCubic)
+      
+      if (timeElapsed < duration) {
+        requestAnimationFrame(animation)
+      }
+    }
+    
+    requestAnimationFrame(animation)
+  }
+}
 
 // Banner Slider Logic
 const currentSlide = ref(0)
+const isResetting = ref(false) // Flag to disable transition during reset
 let slideInterval = null
 
 const bannerImages = computed(() => {
@@ -131,14 +202,35 @@ const bannerImages = computed(() => {
   return banner.trim() ? [banner] : []
 })
 
+// Extended array: original slides + 1 cloned first slide for seamless loop
+const extendedBannerImages = computed(() => {
+  if (bannerImages.value.length <= 1) return bannerImages.value
+  return [...bannerImages.value, bannerImages.value[0]]
+})
+
 const goToSlide = (index) => {
   currentSlide.value = index
   resetAutoSlide()
 }
 
 const nextSlide = () => {
-  if (bannerImages.value.length > 1) {
-    currentSlide.value = (currentSlide.value + 1) % bannerImages.value.length
+  if (bannerImages.value.length <= 1) return
+  
+  currentSlide.value++
+  
+  // When we reach the cloned slide (last position), wait for transition then reset
+  if (currentSlide.value >= bannerImages.value.length) {
+    setTimeout(() => {
+      isResetting.value = true // Disable transition
+      currentSlide.value = 0 // Jump back to real first slide
+      
+      // Re-enable transition after the position is reset
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          isResetting.value = false
+        })
+      })
+    }, 600) // Match the CSS transition duration
   }
 }
 
@@ -158,6 +250,133 @@ const startAutoSlide = () => {
 
 const resetAutoSlide = () => {
   startAutoSlide()
+}
+
+// ================== CAROUSEL LOGIC ==================
+
+// Responsive items per view
+const categoriesPerView = ref(3)
+const productsPerView = ref(4)
+
+// Category carousel state
+const categorySlide = ref(0)
+const categoryResetting = ref(false)
+let categoryInterval = null
+
+// Featured products carousel state
+const featuredSlide = ref(0)
+const featuredResetting = ref(false)
+let featuredInterval = null
+
+// New products carousel state
+const newSlide = ref(0)
+const newResetting = ref(false)
+let newInterval = null
+
+// Extended arrays for seamless infinite loop
+const extendedCategories = computed(() => {
+  if (categories.value.length <= categoriesPerView.value) return categories.value
+  return [...categories.value, ...categories.value.slice(0, categoriesPerView.value)]
+})
+
+const extendedFeaturedProducts = computed(() => {
+  if (featuredProducts.value.length <= productsPerView.value) return featuredProducts.value
+  return [...featuredProducts.value, ...featuredProducts.value.slice(0, productsPerView.value)]
+})
+
+const extendedNewProducts = computed(() => {
+  if (newProducts.value.length <= productsPerView.value) return newProducts.value
+  return [...newProducts.value, ...newProducts.value.slice(0, productsPerView.value)]
+})
+
+// Generic carousel navigation helper
+const createCarouselNav = (slideRef, resettingRef, items, perView) => {
+  const next = () => {
+    if (items.value.length <= perView.value) return
+    slideRef.value++
+    
+    if (slideRef.value >= items.value.length) {
+      setTimeout(() => {
+        resettingRef.value = true
+        slideRef.value = 0
+        requestAnimationFrame(() => {
+          requestAnimationFrame(() => {
+            resettingRef.value = false
+          })
+        })
+      }, 500)
+    }
+  }
+  
+  const prev = () => {
+    if (items.value.length <= perView.value) return
+    if (slideRef.value <= 0) {
+      resettingRef.value = true
+      slideRef.value = items.value.length
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          resettingRef.value = false
+          slideRef.value--
+        })
+      })
+    } else {
+      slideRef.value--
+    }
+  }
+  
+  return { next, prev }
+}
+
+// Category carousel navigation
+const { next: nextCategorySlide, prev: prevCategorySlide } = createCarouselNav(
+  categorySlide, categoryResetting, categories, categoriesPerView
+)
+
+// Featured products carousel navigation
+const { next: nextFeaturedSlide, prev: prevFeaturedSlide } = createCarouselNav(
+  featuredSlide, featuredResetting, featuredProducts, productsPerView
+)
+
+// New products carousel navigation
+const { next: nextNewSlide, prev: prevNewSlide } = createCarouselNav(
+  newSlide, newResetting, newProducts, productsPerView
+)
+
+// Auto-scroll for all carousels (slower intervals)
+const startCarouselAutoSlide = () => {
+  if (categories.value.length > categoriesPerView.value) {
+    categoryInterval = setInterval(nextCategorySlide, 6000)
+  }
+  if (featuredProducts.value.length > productsPerView.value) {
+    featuredInterval = setInterval(nextFeaturedSlide, 7000)
+  }
+  if (newProducts.value.length > productsPerView.value) {
+    newInterval = setInterval(nextNewSlide, 8000)
+  }
+}
+
+const stopCarouselAutoSlide = () => {
+  if (categoryInterval) clearInterval(categoryInterval)
+  if (featuredInterval) clearInterval(featuredInterval)
+  if (newInterval) clearInterval(newInterval)
+}
+
+// Update items per view on resize
+const updateItemsPerView = () => {
+  const width = window.innerWidth
+  if (width < 480) {
+    categoriesPerView.value = 1
+    productsPerView.value = 1
+  } else if (width < 768) {
+    categoriesPerView.value = 2
+    productsPerView.value = 2
+  } else if (width < 1024) {
+    categoriesPerView.value = 3
+    productsPerView.value = 3
+  } else {
+    categoriesPerView.value = 3
+    productsPerView.value = 4
+  }
 }
 
 // Chỉ reset khi bannerImages thay đổi thực sự
@@ -188,10 +407,21 @@ onMounted(async () => {
   }
   
   startAutoSlide()
+  
+  // Initialize carousels
+  updateItemsPerView()
+  window.addEventListener('resize', updateItemsPerView)
+  
+  // Start carousel auto-scroll after data is loaded
+  setTimeout(() => {
+    startCarouselAutoSlide()
+  }, 1000)
 })
 
 onUnmounted(() => {
   stopAutoSlide()
+  stopCarouselAutoSlide()
+  window.removeEventListener('resize', updateItemsPerView)
 })
 </script>
 
@@ -218,6 +448,86 @@ onUnmounted(() => {
   display: flex;
   height: 100%;
   transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.slider-track.no-transition {
+  transition: none;
+}
+
+/* ===== CAROUSEL STYLES ===== */
+.carousel-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.carousel-container {
+  overflow: hidden;
+  flex: 1;
+  border-radius: var(--radius-lg);
+}
+
+.carousel-track {
+  display: flex;
+  margin: 0 -8px;
+  transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.carousel-track.no-transition {
+  transition: none;
+}
+
+.carousel-item {
+  flex-shrink: 0;
+  padding: 0 8px;
+  box-sizing: border-box;
+}
+
+/* Category cards need more spacing */
+.category-card.carousel-item {
+  padding: 0;
+}
+
+.category-carousel-track {
+  gap: 20px;
+}
+
+.carousel-arrow {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  background: rgba(26, 26, 46, 0.8);
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  z-index: 10;
+  backdrop-filter: blur(10px);
+}
+
+.carousel-arrow:hover {
+  background: var(--primary);
+  border-color: var(--primary);
+  transform: scale(1.1);
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+}
+
+.carousel-arrow:active {
+  transform: scale(0.95);
+}
+
+.carousel-arrow-left {
+  margin-right: 5px;
+}
+
+.carousel-arrow-right {
+  margin-left: 5px;
 }
 
 .slider-slide {
@@ -572,6 +882,29 @@ onUnmounted(() => {
 
   .category-card h3 {
     font-size: 0.9rem;
+  }
+
+  /* Carousel mobile */
+  .carousel-arrow {
+    width: 32px;
+    height: 32px;
+    font-size: 18px;
+  }
+
+  .carousel-item {
+    padding: 0 5px;
+  }
+
+  .carousel-track {
+    margin: 0 -5px;
+  }
+
+  .carousel-wrapper {
+    margin: 0 -10px;
+  }
+
+  .carousel-container {
+    margin: 0 10px;
   }
 }
 </style>

@@ -10,7 +10,7 @@
         </div>
         <div class="popup-content" v-html="notification.text">
         </div>
-        <div class="popup-footer">
+        <div class="popup-footer" style="display: flex; justify-content: space-around;">
           <button class="btn btn-secondary" @click="closeNotification">Đã hiểu</button>
           <button class="btn btn-primary" @click="dismissFor3Hours">Đóng trong 3 giờ</button>
         </div>
