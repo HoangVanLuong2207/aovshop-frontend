@@ -8,6 +8,23 @@ export const useSettingsStore = defineStore('settings', () => {
     const shopBanner = ref(null)
     const loaded = ref(false)
 
+    // Cập nhật favicon và document title
+    const updateBrowserMeta = () => {
+        // Update document title
+        document.title = shopName.value
+
+        // Update favicon nếu có logo
+        if (shopLogo.value) {
+            let favicon = document.querySelector("link[rel~='icon']")
+            if (!favicon) {
+                favicon = document.createElement('link')
+                favicon.rel = 'icon'
+                document.head.appendChild(favicon)
+            }
+            favicon.href = shopLogo.value
+        }
+    }
+
     const fetchShopInfo = async () => {
         if (loaded.value) return
 
@@ -17,6 +34,7 @@ export const useSettingsStore = defineStore('settings', () => {
             shopLogo.value = response.data.shop_logo
             shopBanner.value = response.data.shop_banner
             loaded.value = true
+            updateBrowserMeta()
         } catch (error) {
             console.error('Failed to fetch shop info:', error)
         }
@@ -30,6 +48,7 @@ export const useSettingsStore = defineStore('settings', () => {
             shopLogo.value = response.data.shop_logo
             shopBanner.value = response.data.shop_banner
             loaded.value = true
+            updateBrowserMeta()
         } catch (error) {
             console.error('Failed to refresh shop info:', error)
         }
