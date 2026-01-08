@@ -38,7 +38,7 @@
         </button>
 
         <template v-if="authStore.isAuthenticated">
-          <router-link to="/deposit" class="balance-badge">
+          <router-link to="/deposit" class="balance-badge"style="color:white">
             {{ formatPrice(authStore.balance) }}
           </router-link>
           

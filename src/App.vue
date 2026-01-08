@@ -45,6 +45,7 @@ import NotificationFeed from './components/NotificationFeed.vue'
 import { useAuthStore } from './stores/auth'
 import { useSettingsStore } from './stores/settings'
 import api from './api'
+import DOMPurify from 'dompurify'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -82,6 +83,10 @@ const dismissFor3Hours = () => {
 const fetchNotification = async () => {
   try {
     const response = await api.get('/shop/notification')
+    // Sanitize the HTML content
+    if (response.data && response.data.text) {
+      response.data.text = DOMPurify.sanitize(response.data.text)
+    }
     notification.value = response.data
   } catch (error) {
     console.error('Failed to fetch notification:', error)
