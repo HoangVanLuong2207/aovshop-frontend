@@ -26,15 +26,9 @@ api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      // Don't redirect if on login/register page or if this is a login/register request
-      const isAuthRequest = error.config?.url?.includes('/auth/login') || error.config?.url?.includes('/auth/register')
-      const isAuthPage = window.location.pathname === '/login' || window.location.pathname === '/register'
-
-      if (!isAuthRequest && !isAuthPage) {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
-        window.location.href = '/login'
-      }
+      localStorage.removeItem('token')
+      localStorage.removeItem('user')
+      window.location.href = '/login'
     }
     return Promise.reject(error)
   }
@@ -101,6 +95,7 @@ export const adminApi = {
   addAccounts: (productId, data) => api.post(`/admin/products/${productId}/accounts`, data),
   deleteAccount: (productId, accountId) => api.delete(`/admin/products/${productId}/accounts/${accountId}`),
   clearAccounts: (productId) => api.post(`/admin/products/${productId}/accounts/clear`),
+  searchAccount: (query) => api.get('/admin/accounts/search', { params: { q: query } }),
 
   // Promotions
   getPromotions: (params) => api.get('/admin/promotions', { params }),

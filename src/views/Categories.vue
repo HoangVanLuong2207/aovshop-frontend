@@ -20,21 +20,13 @@
           :key="cat.id" 
           :to="`/products?category=${cat.id}`"
           class="category-card"
+          :style="cat.image ? { backgroundImage: `url(${cat.image})` } : {}"
         >
-          <div class="category-image-wrapper">
-            <img 
-              v-if="cat.image" 
-              :src="cat.image" 
-              :alt="cat.name" 
-              class="category-image"
-            />
-            <div v-else class="category-image-placeholder">📁</div>
-          </div>
-          <div class="category-info">
+          <div class="category-overlay"></div>
+          <div class="category-content">
             <h3 class="category-name">{{ cat.name }}</h3>
             <p class="category-count">{{ cat.products_count || 0 }} sản phẩm</p>
           </div>
-          <div class="category-arrow">→</div>
         </router-link>
       </div>
     </div>
@@ -78,76 +70,54 @@ onMounted(() => {
 }
 
 .category-card {
+  position: relative;
   display: flex;
-  align-items: center;
-  gap: 1rem;
-  background: var(--bg-secondary);
-  border: 1px solid var(--border);
+  align-items: flex-end;
+  min-height: 180px;
   border-radius: var(--radius);
-  padding: 1.25rem;
-  transition: all 0.3s;
+  overflow: hidden;
   text-decoration: none;
-  color: inherit;
+  color: white;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--bg-tertiary);
+  transition: all 0.3s ease;
+}
+
+.category-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.2) 100%);
+  transition: all 0.3s ease;
 }
 
 .category-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--primary);
+  transform: translateY(-6px);
+  box-shadow: 0 20px 40px rgba(0,0,0,0.4);
 }
 
-.category-image-wrapper {
-  flex-shrink: 0;
-  width: 64px;
-  height: 64px;
-  border-radius: var(--radius-sm);
-  overflow: hidden;
-  background: var(--bg-tertiary);
+.category-card:hover .category-overlay {
+  background: linear-gradient(to top, rgba(99,102,241,0.8) 0%, rgba(0,0,0,0.3) 100%);
 }
 
-.category-image {
+.category-content {
+  position: relative;
+  z-index: 1;
+  padding: 1.5rem;
   width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.category-image-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 1.75rem;
-  color: var(--text-muted);
-}
-
-.category-info {
-  flex: 1;
-  min-width: 0;
 }
 
 .category-name {
-  font-size: 1.1rem;
-  font-weight: 600;
+  font-size: 1.25rem;
+  font-weight: 700;
   margin-bottom: 0.25rem;
-  color: var(--text);
+  text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 .category-count {
   font-size: 0.875rem;
-  color: var(--text-secondary);
+  opacity: 0.9;
   margin: 0;
-}
-
-.category-arrow {
-  font-size: 1.25rem;
-  color: var(--text-muted);
-  transition: all 0.2s;
-}
-
-.category-card:hover .category-arrow {
-  color: var(--primary);
-  transform: translateX(4px);
 }
 
 @media (max-width: 480px) {
@@ -156,12 +126,8 @@ onMounted(() => {
   }
   
   .category-card {
-    padding: 1rem;
-  }
-  
-  .category-image-wrapper {
-    width: 52px;
-    height: 52px;
+    min-height: 140px;
   }
 }
 </style>
+

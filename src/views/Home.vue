@@ -77,18 +77,13 @@
                 <router-link 
                   :to="`/products?category=${category.id}`"
                   class="category-card"
+                  :style="category.image ? { backgroundImage: `url(${getImageUrl(category.image)})` } : {}"
                 >
-                  <div class="category-icon">
-                    <img 
-                      v-if="category.image" 
-                      :src="getImageUrl(category.image)" 
-                      :alt="category.name"
-                      class="category-img"
-                    />
-                    <span v-else>📁</span>
+                  <div class="category-overlay"></div>
+                  <div class="category-content">
+                    <h3>{{ category.name }}</h3>
+                    <p>{{ category.products_count }} sản phẩm</p>
                   </div>
-                  <h3>{{ category.name }}</h3>
-                  <p>{{ category.products_count }} sản phẩm</p>
                 </router-link>
               </div>
             </div>
@@ -155,7 +150,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue'
+import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { shopApi } from '../api'
 import ProductCard from '../components/ProductCard.vue'
 import { getImageUrl } from '../utils/image'
@@ -433,7 +428,9 @@ onMounted(async () => {
   }, 1000)
   
   // Initialize scroll reveal
-  initScrollReveal()
+  nextTick(() => {
+    initScrollReveal()
+  })
 })
 
 onUnmounted(() => {
@@ -758,77 +755,73 @@ const initScrollReveal = () => {
 
 /* ===== CATEGORY CARDS ===== */
 .category-card {
-  background: rgba(26, 26, 46, 0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-lg);
-  padding: 2.5rem 2rem;
-  text-align: center;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  color: var(--text);
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  border-radius: var(--radius-lg);
   overflow: hidden;
+  text-decoration: none;
+  color: white;
+  background-size: cover;
+  background-position: center;
+  background-color: rgba(26, 26, 46, 0.8);
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
 }
 
-.category-card::before {
-  content: '';
+.category-overlay {
   position: absolute;
   inset: 0;
-  border-radius: inherit;
-  padding: 2px;
-  background: linear-gradient(135deg, transparent 0%, var(--primary) 50%, var(--secondary) 100%);
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  -webkit-mask-composite: xor;
-  mask-composite: exclude;
-  opacity: 0;
-  transition: opacity 0.4s;
+  background: rgba(0,0,0,0.5);
+  transition: all 0.3s ease;
 }
 
 .category-card:hover {
   transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2), var(--glow-primary);
+  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
 }
 
-.category-card:hover::before {
-  opacity: 1;
+.category-card:hover .category-overlay {
+  background: rgba(99,102,241,0.6);
 }
 
-.category-icon {
-  margin-bottom: 1.25rem;
-  height: 80px;
+.category-content {
+  position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: 3.5rem;
-  transition: transform 0.3s;
-}
-
-.category-card:hover .category-icon {
-  animation: bounce-subtle 0.6s ease;
-}
-
-.category-img {
-  width: 80px;
-  height: 80px;
-  object-fit: cover;
-  border-radius: 16px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  text-align: center;
+  height: 100%;
 }
 
 .category-card h3 {
-  font-size: 1.35rem;
+  font-size: 1.75rem;
   margin-bottom: 0.5rem;
-  font-weight: 600;
-  color: white;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+  font-weight: 700;
+  background: linear-gradient(
+    90deg,
+    #ff0000, #ffff00, #00ff00, #ff0000
+  );
+  background-size: 400% 100%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  animation: rgb-flow 30s linear infinite;
+  text-shadow: none;
+}
+
+@keyframes rgb-flow {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 400% 50%; }
 }
 
 .category-card p {
-  color: rgba(255, 255, 255, 0.8);
-  font-size: 0.95rem;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  color: rgba(255, 255, 255, 0.95);
+  font-size: 1.1rem;
+  margin: 0;
+  text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Mobile Responsive */

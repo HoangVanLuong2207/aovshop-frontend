@@ -223,23 +223,5 @@ onMounted(() => {
   opacity: 0;
   transform: translateY(-12px);
 }
-
-/* RGB Rainbow Text Animation */
-.rgb-text {
-  background: linear-gradient(
-    90deg,
-    #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000
-  );
-  background-size: 400% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: rgb-flow 3s linear infinite;
-}
-
-@keyframes rgb-flow {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 400% 50%; }
-}
 </style>
 

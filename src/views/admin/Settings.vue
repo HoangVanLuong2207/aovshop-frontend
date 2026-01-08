@@ -27,8 +27,6 @@
         </label>
       </div>
 
-
-
         <div class="form-group" v-if="settings.notification_enabled">
           <label>Nội dung thông báo</label>
           
@@ -45,9 +43,6 @@
             </button>
             <button type="button" class="toolbar-btn" @click="insertImage" title="Chèn ảnh">
               🖼️
-            </button>
-            <button type="button" class="toolbar-btn toolbar-btn-rgb" @click="insertRGB" title="Chữ nháy RGB">
-              🌈
             </button>
           </div>
           
@@ -389,11 +384,6 @@ const insertImage = () => {
   if (!url) return
   
   insertAtCursor(`<img src="${url}" style="max-width: 100%; border-radius: 8px;" />`)
-}
-
-const insertRGB = () => {
-  const selectedText = window.getSelection().toString() || 'chữ RGB'
-  insertAtCursor(`<span class="rgb-text">${selectedText}</span>`)
 }
 
 onMounted(loadSettings)
@@ -754,23 +744,5 @@ small {
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid var(--border);
-}
-
-/* RGB Rainbow Text Animation */
-.rgb-text {
-  background: linear-gradient(
-    90deg,
-    #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #9400d3, #ff0000
-  );
-  background-size: 400% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: rgb-flow 3s linear infinite;
-}
-
-@keyframes rgb-flow {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 400% 50%; }
 }
 </style>

@@ -6,11 +6,42 @@
     </div>
 
     <div class="filters mb-3">
-      <select v-model="filter.category_id" class="form-input" style="width: auto" @change="loadProducts">
+      <select v-model="filter.category_id" class="form-input" style="width: auto">
         <option value="">Tất cả danh mục</option>
         <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
       </select>
-      <input v-model="filter.search" type="text" class="form-input" placeholder="Tìm kiếm..." @input="debouncedSearch" style="width: 200px" />
+      <input v-model="filter.search" type="text" class="form-input" placeholder="Tìm sản phẩm..." style="width: 200px" />
+      <div class="account-search-wrapper">
+        <input 
+          v-model="accountSearch" 
+          type="text" 
+          class="form-input" 
+          placeholder="🔍 Tìm tài khoản..." 
+          @keyup.enter="searchAccount"
+          style="width: 250px" 
+        />
+        <button class="btn btn-secondary btn-sm" @click="searchAccount" :disabled="searchingAccount || !accountSearch.trim()">
+          {{ searchingAccount ? '...' : 'Tìm' }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Kết quả tìm kiếm tài khoản -->
+    <div v-if="accountSearchResult" class="account-search-result mb-3">
+      <div class="alert" :class="accountSearchResult.found ? 'alert-success' : 'alert-warning'">
+        <strong v-if="accountSearchResult.found">
+          ✅ Tài khoản "<span style="color: var(--primary); font-weight: 600;">{{ accountSearchResult.query }}</span>" thuộc sản phẩm: 
+          <router-link :to="`/admin/products`" @click="highlightProduct(accountSearchResult.product.id)">
+            {{ accountSearchResult.product.name }}
+          </router-link>
+          <span v-if="accountSearchResult.product.category">
+            (Danh mục: <span style="color: var(--primary); font-weight: 600;">{{ accountSearchResult.product.category.name }}</span>)
+          </span>
+          ({{ accountSearchResult.status === 'available' ? 'Chưa bán' : 'Đã bán' }})
+        </strong>
+        <span v-else>❌ Không tìm thấy tài khoản "{{ accountSearchResult.query }}"</span>
+        <button class="btn-close" @click="accountSearchResult = null">✕</button>
+      </div>
     </div>
 
     <div v-if="loading" class="loading"><div class="spinner"></div></div>
@@ -28,7 +59,7 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="product in products" :key="product.id">
+        <tr v-for="product in activeProducts" :key="product.id" :data-product-id="product.id">
           <td>{{ product.id }}</td>
           <td>{{ product.name }}</td>
           <td>{{ product.category?.name }}</td>
@@ -68,8 +99,22 @@
           </div>
 
           <div class="account-list">
-            <h4>Danh sách tài khoản ({{ accounts.length }})</h4>
+            <div class="flex-between mb-2">
+              <h4>Danh sách tài khoản ({{ accounts.length }})</h4>
+              <div class="search-box">
+                <input 
+                  v-model="accountListSearch" 
+                  type="text" 
+                  class="form-input form-input-sm" 
+                  placeholder="🔍 Lọc tài khoản..." 
+                  style="width: 200px"
+                />
+              </div>
+            </div>
             <div v-if="loadingAccounts" class="text-center py-3"><div class="spinner"></div></div>
+            <div v-else-if="filteredAccounts.length === 0" class="text-center py-4 text-muted">
+              Không tìm thấy tài khoản nào khớp với từ khóa.
+            </div>
             <table v-else class="table table-sm">
               <thead>
                 <tr>
@@ -80,7 +125,7 @@
                 </tr>
               </thead>
               <tbody>
-                <tr v-for="acc in accounts" :key="acc.id">
+                <tr v-for="acc in filteredAccounts" :key="acc.id">
                   <td><code>{{ acc.data }}</code></td>
                   <td>
                     <span :class="['badge', acc.status === 'available' ? 'badge-success' : 'badge-secondary']">
@@ -89,7 +134,7 @@
                   </td>
                   <td>{{ new Date(acc.createdAt).toLocaleDateString() }}</td>
                   <td>
-                    <button class="btn btn-danger btn-sm" @click="deleteAccount(acc)">Xóa</button>
+                    <button class="btn btn-danger btn-sm" @click="deleteAccount(acc)" v-if="acc.status === 'available'">Xóa</button>
                   </td>
                 </tr>
               </tbody>
@@ -175,7 +220,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, computed } from 'vue'
 import { adminApi } from '../../api'
 import { useToast } from '../../composables/useToast'
 
@@ -187,6 +232,29 @@ const showModal = ref(false)
 const editing = ref(null)
 const products = ref([])
 const categories = ref([])
+
+// Filter sản phẩm theo: active, category, search (tên hoặc tài khoản)
+const activeProducts = computed(() => {
+  let result = products.value.filter(p => p.active !== false)
+  
+  // Filter theo danh mục
+  if (filter.category_id) {
+    result = result.filter(p => p.categoryId == filter.category_id || p.category_id == filter.category_id)
+  }
+  
+  // Filter theo tên sản phẩm
+  if (filter.search) {
+    const searchLower = filter.search.toLowerCase()
+    result = result.filter(p => p.name.toLowerCase().includes(searchLower))
+  }
+  
+  return result
+})
+
+// Tìm kiếm tài khoản
+const accountSearch = ref('')
+const accountSearchResult = ref(null)
+const searchingAccount = ref(false)
 
 
 const filter = reactive({ category_id: '', search: '' })
@@ -209,6 +277,13 @@ const accounts = ref([])
 const loadingAccounts = ref(false)
 const addingAccounts = ref(false)
 const bulkAccounts = ref('')
+const accountListSearch = ref('')
+
+const filteredAccounts = computed(() => {
+  if (!accountListSearch.value.trim()) return accounts.value
+  const searchLower = accountListSearch.value.toLowerCase()
+  return accounts.value.filter(acc => acc.data.toLowerCase().includes(searchLower))
+})
 
 const openAccountModal = async (product) => {
   selectedProduct.value = product
@@ -221,6 +296,7 @@ const closeAccountModal = () => {
   showAccountModal.value = false
   selectedProduct.value = null
   accounts.value = []
+  accountListSearch.value = ''
 }
 
 const loadAccounts = async () => {
@@ -287,6 +363,44 @@ const clearAccounts = async () => {
   } catch (error) {
     toast.error(error.response?.data?.message || 'Xóa thất bại')
   }
+}
+
+// Tìm kiếm tài khoản
+const searchAccount = async () => {
+  if (!accountSearch.value.trim()) return
+  
+  searchingAccount.value = true
+  accountSearchResult.value = null
+  
+  try {
+    const response = await adminApi.searchAccount(accountSearch.value.trim())
+    accountSearchResult.value = {
+      query: accountSearch.value.trim(),
+      found: response.data.found,
+      product: response.data.product,
+      status: response.data.status
+    }
+  } catch (error) {
+    toast.error(error.response?.data?.message || 'Lỗi tìm kiếm')
+  } finally {
+    searchingAccount.value = false
+  }
+}
+
+const highlightProduct = (productId) => {
+  // Clear search result and scroll to product
+  accountSearchResult.value = null
+  filter.category_id = ''
+  filter.search = ''
+  
+  setTimeout(() => {
+    const row = document.querySelector(`tr[data-product-id="${productId}"]`)
+    if (row) {
+      row.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      row.classList.add('highlight')
+      setTimeout(() => row.classList.remove('highlight'), 2000)
+    }
+  }, 100)
 }
 
 
@@ -411,21 +525,13 @@ const saveProduct = async () => {
 }
 
 const deleteProduct = async (product) => {
-  // Check if product has available accounts
-  let message = `Xóa sản phẩm "${product.name}"?`
-  
-  if (product.stock > 0) {
-    message = `Sản phẩm "${product.name}" còn ${product.stock} tài khoản trong kho.\n\nNếu xác nhận, sản phẩm sẽ bị ẩn và tài khoản tồn kho sẽ bị xóa vĩnh viễn.\n\nBạn có chắc chắn muốn xóa?`
-  }
-  
-  const confirmed = await confirm(message, { type: 'danger', title: 'Xóa sản phẩm' })
+  const confirmed = await confirm(`Xóa sản phẩm "${product.name}"?`, { type: 'danger', title: 'Xóa sản phẩm' })
   if (!confirmed) return
   
   try {
     await adminApi.deleteProduct(product.id)
-    // Ẩn sản phẩm khỏi danh sách admin
+    // Optimized: Update local state
     products.value = products.value.filter(p => p.id !== product.id)
-    toast.success('Sản phẩm đã được xóa và tài khoản tồn kho đã được giải phóng')
   } catch (error) {
     toast.error(error.response?.data?.message || 'Xóa thất bại')
   }
@@ -484,5 +590,71 @@ onMounted(() => {
   .filters .form-input {
     width: 100% !important;
   }
+  
+  .account-search-wrapper {
+    width: 100%;
+    margin-top: 0.5rem;
+  }
+}
+
+/* Account search styles */
+.filters {
+  display: flex;
+  gap: 0.75rem;
+  align-items: center;
+}
+
+.account-search-wrapper {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.account-search-result .alert {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem;
+  border-radius: var(--radius);
+}
+
+.alert-success {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid var(--success);
+  color: var(--success);
+}
+
+.alert-warning {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid var(--warning);
+  color: var(--warning);
+}
+
+.alert a {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.btn-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.7;
+}
+
+.btn-close:hover {
+  opacity: 1;
+}
+
+/* Highlight animation */
+tr.highlight {
+  animation: highlight-pulse 0.5s ease-in-out 3;
+}
+
+@keyframes highlight-pulse {
+  0%, 100% { background: transparent; }
+  50% { background: rgba(99, 102, 241, 0.3); }
 }
 </style>
