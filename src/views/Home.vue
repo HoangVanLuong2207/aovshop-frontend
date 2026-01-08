@@ -21,6 +21,11 @@
       <!-- Fallback gradient khi không có banner -->
       <div v-else class="slider-fallback"></div>
       
+      <!-- Floating Particles -->
+      <div class="particles-container">
+        <div v-for="n in 15" :key="'particle-' + n" class="particle" :style="getParticleStyle(n)"></div>
+      </div>
+      
       <!-- Content overlay -->
       <div class="hero-content">
         <div class="container">
@@ -47,8 +52,14 @@
     <!-- Categories Carousel -->
     <section class="section" id="categories-section" ref="categoriesSection">
       <div class="container">
-        <h2 class="section-title">Danh mục sản phẩm</h2>
-        <div v-if="loading" class="loading"><div class="spinner"></div></div>
+        <h2 class="section-title reveal">Danh mục sản phẩm</h2>
+        <div v-if="loading" class="skeleton-grid">
+          <div v-for="n in 3" :key="'skel-cat-' + n" class="skeleton-category-card">
+            <div class="skeleton skeleton-icon"></div>
+            <div class="skeleton skeleton-title"></div>
+            <div class="skeleton skeleton-text"></div>
+          </div>
+        </div>
         <div v-else-if="categories.length > 0" class="carousel-wrapper">
           <button class="carousel-arrow carousel-arrow-left" @click="prevCategorySlide" v-if="categories.length > categoriesPerView">‹</button>
           <div class="carousel-container" ref="categoryCarousel">
@@ -90,7 +101,7 @@
     <!-- Featured Products Carousel -->
     <section class="section" v-if="featuredProducts.length">
       <div class="container">
-        <h2 class="section-title">🔥 Đang giảm giá</h2>
+        <h2 class="section-title reveal">🔥 Đang giảm giá</h2>
         <div class="carousel-wrapper">
           <button class="carousel-arrow carousel-arrow-left" @click="prevFeaturedSlide" v-if="featuredProducts.length > productsPerView">‹</button>
           <div class="carousel-container">
@@ -117,7 +128,7 @@
     <!-- New Products Carousel -->
     <section class="section" v-if="newProducts.length">
       <div class="container">
-        <h2 class="section-title">✨ Sản phẩm mới</h2>
+        <h2 class="section-title reveal">✨ Sản phẩm mới</h2>
         <div class="carousel-wrapper">
           <button class="carousel-arrow carousel-arrow-left" @click="prevNewSlide" v-if="newProducts.length > productsPerView">‹</button>
           <div class="carousel-container">
@@ -420,6 +431,9 @@ onMounted(async () => {
   setTimeout(() => {
     startCarouselAutoSlide()
   }, 1000)
+  
+  // Initialize scroll reveal
+  initScrollReveal()
 })
 
 onUnmounted(() => {
@@ -427,6 +441,48 @@ onUnmounted(() => {
   stopCarouselAutoSlide()
   window.removeEventListener('resize', updateItemsPerView)
 })
+
+// Particle style generator
+const getParticleStyle = (n) => {
+  const size = 4 + Math.random() * 8
+  const left = Math.random() * 100
+  const delay = Math.random() * 5
+  const duration = 5 + Math.random() * 5
+  const opacity = 0.3 + Math.random() * 0.4
+  
+  return {
+    width: `${size}px`,
+    height: `${size}px`,
+    left: `${left}%`,
+    top: `${20 + Math.random() * 60}%`,
+    animationDelay: `${delay}s`,
+    animationDuration: `${duration}s`,
+    opacity: opacity,
+    background: n % 3 === 0 
+      ? 'var(--primary)' 
+      : n % 3 === 1 
+        ? 'var(--secondary)' 
+        : 'rgba(255, 255, 255, 0.5)'
+  }
+}
+
+// Scroll reveal initialization
+const initScrollReveal = () => {
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('visible')
+      }
+    })
+  }, {
+    threshold: 0.1,
+    rootMargin: '0px 0px -50px 0px'
+  })
+  
+  document.querySelectorAll('.reveal').forEach(el => {
+    observer.observe(el)
+  })
+}
 </script>
 
 <style scoped>
@@ -910,5 +966,114 @@ onUnmounted(() => {
   .carousel-container {
     margin: 0 10px;
   }
+}
+
+/* ===== PARTICLES ===== */
+.particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.particle {
+  position: absolute;
+  border-radius: 50%;
+  animation: float-particle 6s ease-in-out infinite;
+  filter: blur(1px);
+}
+
+@keyframes float-particle {
+  0%, 100% {
+    transform: translateY(0) translateX(0);
+  }
+  25% {
+    transform: translateY(-20px) translateX(10px);
+  }
+  50% {
+    transform: translateY(-10px) translateX(-10px);
+  }
+  75% {
+    transform: translateY(-30px) translateX(5px);
+  }
+}
+
+/* ===== SKELETON LOADING ===== */
+.skeleton-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .skeleton-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .skeleton-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.skeleton-category-card {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.03) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.03) 75%
+  );
+  background-size: 200px 100%;
+  animation: skeleton-loading 1.5s ease-in-out infinite;
+  border-radius: 8px;
+}
+
+.skeleton-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 16px;
+}
+
+.skeleton-title {
+  height: 20px;
+  width: 70%;
+}
+
+.skeleton-text {
+  height: 14px;
+  width: 50%;
+}
+
+@keyframes skeleton-loading {
+  0% { background-position: -200px 0; }
+  100% { background-position: calc(200px + 100%) 0; }
+}
+
+/* ===== SCROLL REVEAL ===== */
+.reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s ease, transform 0.6s ease;
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 </style>

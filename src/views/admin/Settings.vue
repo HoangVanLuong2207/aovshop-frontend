@@ -268,7 +268,7 @@ const settings = ref({
 
 const saving = ref(false)
 
-const webhookUrl = 'https://aovshop-backend.onrender.com/api/deposit/webhook'
+const webhookUrl = 'https://(web3).onrender.com/api/deposit/webhook'
 
 const bannerList = ref([''])
 

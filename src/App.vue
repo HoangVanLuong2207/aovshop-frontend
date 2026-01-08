@@ -24,6 +24,12 @@
       </Transition>
     </router-view>
     <ToastContainer />
+    
+    <!-- Floating UI Elements (only on non-admin pages) -->
+    <template v-if="!isAdminRoute">
+      <BackToTop />
+      <FloatingChat />
+    </template>
   </div>
 </template>
 
@@ -32,6 +38,8 @@ import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import Navbar from './components/Navbar.vue'
 import ToastContainer from './components/ToastContainer.vue'
+import BackToTop from './components/BackToTop.vue'
+import FloatingChat from './components/FloatingChat.vue'
 import { useAuthStore } from './stores/auth'
 import { useSettingsStore } from './stores/settings'
 import api from './api'
