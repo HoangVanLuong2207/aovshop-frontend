@@ -24,7 +24,6 @@
           <th>Giá</th>
           <th>Giá KM</th>
           <th>Tồn kho</th>
-          <th>Trạng thái</th>
           <th>Thao tác</th>
         </tr>
       </thead>
@@ -36,11 +35,6 @@
           <td>{{ formatPrice(product.price) }}</td>
           <td>{{ product.sale_price ? formatPrice(product.sale_price) : '-' }}</td>
           <td>{{ product.stock }}</td>
-          <td>
-            <span :class="['badge', product.active ? 'badge-success' : 'badge-danger']">
-              {{ product.active ? 'Đang bán' : 'Ẩn' }}
-            </span>
-          </td>
           <td>
             <button class="btn btn-secondary btn-sm" @click="openModal(product)">Sửa</button>
             <button class="btn btn-info btn-sm" @click="openAccountModal(product)">Quản lý kho</button>
@@ -95,7 +89,7 @@
                   </td>
                   <td>{{ new Date(acc.createdAt).toLocaleDateString() }}</td>
                   <td>
-                    <button class="btn btn-danger btn-sm" @click="deleteAccount(acc)" v-if="acc.status === 'available'">Xóa</button>
+                    <button class="btn btn-danger btn-sm" @click="deleteAccount(acc)">Xóa</button>
                   </td>
                 </tr>
               </tbody>
@@ -417,13 +411,21 @@ const saveProduct = async () => {
 }
 
 const deleteProduct = async (product) => {
-  const confirmed = await confirm(`Xóa sản phẩm "${product.name}"?`, { type: 'danger', title: 'Xóa sản phẩm' })
+  // Check if product has available accounts
+  let message = `Xóa sản phẩm "${product.name}"?`
+  
+  if (product.stock > 0) {
+    message = `Sản phẩm "${product.name}" còn ${product.stock} tài khoản trong kho.\n\nNếu xác nhận, sản phẩm sẽ bị ẩn và tài khoản tồn kho sẽ bị xóa vĩnh viễn.\n\nBạn có chắc chắn muốn xóa?`
+  }
+  
+  const confirmed = await confirm(message, { type: 'danger', title: 'Xóa sản phẩm' })
   if (!confirmed) return
   
   try {
     await adminApi.deleteProduct(product.id)
-    // Optimized: Update local state
+    // Ẩn sản phẩm khỏi danh sách admin
     products.value = products.value.filter(p => p.id !== product.id)
+    toast.success('Sản phẩm đã được xóa và tài khoản tồn kho đã được giải phóng')
   } catch (error) {
     toast.error(error.response?.data?.message || 'Xóa thất bại')
   }
