@@ -146,6 +146,7 @@
         </div>
       </form>
     </div>
+
     </div>
 
     <div class="settings-column">
@@ -210,24 +211,14 @@
           />
         </div>
 
-        <div class="webhook-info">
-          <h3>🔗 Webhook URL</h3>
-          <p>Copy URL này và dán vào cài đặt Webhook trên SePay:</p>
-          <code>{{ webhookUrl }}</code>
-          <button type="button" class="btn btn-secondary btn-sm" @click="copyWebhook">
-            📋 Copy
-          </button>
-        </div>
+       
 
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" :disabled="saving">
             {{ saving ? 'Đang lưu...' : '💾 Lưu cài đặt' }}
           </button>
         </div>
-      </form>
-    </div>
-
-    <div class="settings-section">
+      <div class="settings-section">
       <h2>ℹ️ Hướng dẫn</h2>
       <ol>
         <li>Đăng nhập vào <a href="https://my.sepay.vn" target="_blank">SePay Dashboard</a></li>
@@ -237,6 +228,56 @@
         <li>Nhập thông tin tài khoản ngân hàng nhận tiền</li>
       </ol>
     </div>
+        
+    <!-- Contact Settings Section -->
+    <div class="settings-section">
+      <h2>📞 Liên hệ / Chat</h2>
+      
+      <form @submit.prevent="saveSettings" class="settings-form">
+        <div class="form-group">
+          <label>Link Zalo</label>
+          <input 
+            type="url" 
+            v-model="settings.contact_zalo" 
+            class="form-input"
+            placeholder="https://zalo.me/0123456789"
+          />
+          <small>Link Zalo chat của shop</small>
+        </div>
+
+        <div class="form-group">
+          <label>Link Facebook</label>
+          <input 
+            type="url" 
+            v-model="settings.contact_messenger" 
+            class="form-input"
+            placeholder="https://m.me/yourpage"
+          />
+          <small>Link Facebook Messenger của shop</small>
+        </div>
+
+        <div class="form-group">
+          <label>Số Hotline</label>
+          <input 
+            type="tel" 
+            v-model="settings.contact_hotline" 
+            class="form-input"
+            placeholder="0123456789"
+          />
+          <small>Số điện thoại liên hệ</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" :disabled="saving">
+            {{ saving ? 'Đang lưu...' : '💾 Lưu liên hệ' }}
+          </button>
+        </div>
+      </form>
+    </div>
+      </form>
+    </div>
+
+
     </div>
     </div>
   
@@ -264,6 +305,9 @@ const settings = ref({
   sepay_bank_name: '',
   sepay_bank_account: '',
   sepay_account_name: '',
+  contact_zalo: '',
+  contact_messenger: '',
+  contact_hotline: '',
 })
 
 const saving = ref(false)
@@ -416,7 +460,8 @@ onMounted(loadSettings)
 }
 
 .settings-section {
-  background: var(--card-bg);
+  background: var(--bg-secondary, rgba(26, 26, 46, 0.8));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.1));
   border-radius: 12px;
   padding: 24px;
   margin-bottom: 24px;

@@ -6,6 +6,9 @@ export const useSettingsStore = defineStore('settings', () => {
     const shopName = ref('AOV Shop')
     const shopLogo = ref(null)
     const shopBanner = ref(null)
+    const contactZalo = ref('')
+    const contactMessenger = ref('')
+    const contactHotline = ref('')
     const loaded = ref(false)
 
     // Cập nhật favicon và document title
@@ -33,6 +36,9 @@ export const useSettingsStore = defineStore('settings', () => {
             shopName.value = response.data.shop_name || 'AOV Shop'
             shopLogo.value = response.data.shop_logo
             shopBanner.value = response.data.shop_banner
+            contactZalo.value = response.data.contact_zalo || ''
+            contactMessenger.value = response.data.contact_messenger || ''
+            contactHotline.value = response.data.contact_hotline || ''
             loaded.value = true
             updateBrowserMeta()
         } catch (error) {
@@ -47,6 +53,9 @@ export const useSettingsStore = defineStore('settings', () => {
             shopName.value = response.data.shop_name || 'AOV Shop'
             shopLogo.value = response.data.shop_logo
             shopBanner.value = response.data.shop_banner
+            contactZalo.value = response.data.contact_zalo || ''
+            contactMessenger.value = response.data.contact_messenger || ''
+            contactHotline.value = response.data.contact_hotline || ''
             loaded.value = true
             updateBrowserMeta()
         } catch (error) {
@@ -58,6 +67,9 @@ export const useSettingsStore = defineStore('settings', () => {
         shopName,
         shopLogo,
         shopBanner,
+        contactZalo,
+        contactMessenger,
+        contactHotline,
         loaded,
         fetchShopInfo,
         refreshShopInfo,

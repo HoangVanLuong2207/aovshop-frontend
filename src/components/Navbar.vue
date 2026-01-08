@@ -1,5 +1,5 @@
 <template>
-  <nav class="navbar">
+<nav class="navbar">
     <div class="container navbar-content">
       <router-link to="/" class="navbar-logo">
         <img v-if="settingsStore.shopLogo" :src="settingsStore.shopLogo" :alt="settingsStore.shopName" class="shop-logo-img" />
@@ -163,7 +163,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import { useCartStore } from '../stores/cart'
@@ -181,6 +181,11 @@ const showCategoryDropdown = ref(false)
 const showMobileCategories = ref(false)
 const isMobileMenuOpen = ref(false)
 const categories = ref([])
+const isScrolled = ref(false)
+
+const handleScroll = () => {
+  isScrolled.value = window.scrollY > 60
+}
 
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', {
@@ -205,6 +210,7 @@ const logout = async () => {
 }
 
 onMounted(async () => {
+  window.addEventListener('scroll', handleScroll)
   try {
     const res = await shopApi.getCategories()
     categories.value = res.data
@@ -212,9 +218,49 @@ onMounted(async () => {
     console.error('Failed to load categories:', error)
   }
 })
+
+onUnmounted(() => {
+  window.removeEventListener('scroll', handleScroll)
+})
 </script>
 
 <style scoped>
+/* Sticky Header Styles */
+.navbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  width: 100%;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.navbar-scrolled {
+  background: rgba(15, 15, 26, 0.95) !important;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.navbar-scrolled .navbar-logo span {
+  font-size: 1rem;
+}
+
+.navbar-scrolled .shop-logo-img {
+  height: 28px;
+}
+
+.navbar-scrolled .balance-badge {
+  animation: pulse-balance 2s infinite;
+}
+
+@keyframes pulse-balance {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
+  50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+}
+
 /* Shop Logo */
 .navbar-logo {
   display: flex;

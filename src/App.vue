@@ -1,5 +1,5 @@
 <template>
-  <div id="app">
+  <div id="app" :class="{ 'admin-layout': isAdminRoute, 'public-layout': !isAdminRoute }">
     <!-- Announcement Popup Modal -->
     <div v-if="showNotification && notification.enabled" class="popup-overlay" @click.self="closeNotification">
       <div class="popup-modal">
@@ -29,6 +29,7 @@
     <template v-if="!isAdminRoute">
       <BackToTop />
       <FloatingChat />
+      <NotificationFeed />
     </template>
   </div>
 </template>
@@ -40,6 +41,7 @@ import Navbar from './components/Navbar.vue'
 import ToastContainer from './components/ToastContainer.vue'
 import BackToTop from './components/BackToTop.vue'
 import FloatingChat from './components/FloatingChat.vue'
+import NotificationFeed from './components/NotificationFeed.vue'
 import { useAuthStore } from './stores/auth'
 import { useSettingsStore } from './stores/settings'
 import api from './api'

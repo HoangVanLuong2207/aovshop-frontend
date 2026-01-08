@@ -11,7 +11,12 @@
           :style="{ '--option-color': option.color }"
           @click="trackClick(option.name)"
         >
-          <span class="chat-option-icon">{{ option.icon }}</span>
+          <span class="chat-option-icon">
+            <img v-if="option.icon.startsWith('http')" :src="option.icon" :alt="option.name" class="option-icon-img" />
+            <svg v-else-if="option.icon === 'phone'" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+            </svg>
+          </span>
           <span class="chat-option-label">{{ option.name }}</span>
         </a>
       </div>
@@ -29,30 +34,46 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { ref, computed, onMounted } from 'vue'
+import { useSettingsStore } from '../stores/settings'
+
+const settingsStore = useSettingsStore()
 
 const isExpanded = ref(false)
 
-const chatOptions = [
-  { 
-    name: 'Zalo', 
-    icon: '💙', 
-    url: 'https://zalo.me/0123456789', 
-    color: '#0068ff' 
-  },
-  { 
-    name: 'Messenger', 
-    icon: '💜', 
-    url: 'https://m.me/yourpage', 
-    color: '#0084ff' 
-  },
-  { 
-    name: 'Hotline', 
-    icon: '📞', 
-    url: 'tel:0123456789', 
-    color: '#22c55e' 
-  },
-]
+// Read from settings store, with fallbacks
+const chatOptions = computed(() => {
+  const options = []
+  
+  if (settingsStore.contactZalo) {
+    options.push({ 
+      name: 'Zalo', 
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/9/91/Icon_of_Zalo.svg', 
+      url: settingsStore.contactZalo, 
+      color: '#0068ff' 
+    })
+  }
+  
+  if (settingsStore.contactMessenger) {
+    options.push({ 
+      name: 'Facebook', 
+      icon: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Facebook_f_logo_%282019%29.svg', 
+      url: settingsStore.contactMessenger, 
+      color: '#1877f2' 
+    })
+  }
+  
+  if (settingsStore.contactHotline) {
+    options.push({ 
+      name: 'Hotline', 
+      icon: 'phone', 
+      url: `tel:${settingsStore.contactHotline}`, 
+      color: '#22c55e' 
+    })
+  }
+  
+  return options
+})
 
 const toggleExpand = () => {
   isExpanded.value = !isExpanded.value
@@ -62,6 +83,11 @@ const trackClick = (name) => {
   console.log('Chat clicked:', name)
   isExpanded.value = false
 }
+
+onMounted(() => {
+  // Force refresh to ensure contact settings are loaded
+  settingsStore.refreshShopInfo()
+})
 </script>
 
 <style scoped>
@@ -154,6 +180,17 @@ const trackClick = (name) => {
 
 .chat-option-icon {
   font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+}
+
+.option-icon-img {
+  width: 24px;
+  height: 24px;
+  object-fit: contain;
 }
 
 .chat-option-label {

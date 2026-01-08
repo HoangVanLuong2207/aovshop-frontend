@@ -30,7 +30,7 @@
       <div class="hero-content">
         <div class="container">
           <h1 class="hero-title">{{ settingsStore.shopName }}</h1>
-          <p class="hero-subtitle">Mua bán tài khoản, tướng, skin và vật phẩm game</p>
+          <p class="hero-subtitle">Shop acc 24/7</p>
           <button @click="scrollToCategories" class="btn btn-primary btn-lg">
             Khám phá ngay →
           </button>
@@ -46,6 +46,20 @@
           :class="{ active: currentSlide === idx }"
           @click="goToSlide(idx)"
         ></button>
+      </div>
+    </section>
+
+    <!-- Mobile Recent Orders (inline, only visible on mobile) -->
+    <section v-if="recentOrders.length > 0" class="mobile-recent-orders">
+      <div class="container">
+        <div class="recent-orders-marquee">
+          <div class="marquee-content">
+            <span v-for="(order, idx) in recentOrders" :key="idx" class="marquee-item">
+              <strong>{{ order.user }}</strong> vừa mua <strong>{{ order.product }}</strong> giá <strong>{{ formatPrice(order.price) }}</strong>
+              <span class="marquee-sep">•</span>
+            </span>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -152,6 +166,7 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { shopApi } from '../api'
+import api from '../api'
 import ProductCard from '../components/ProductCard.vue'
 import { getImageUrl } from '../utils/image'
 import { useSettingsStore } from '../stores/settings'
@@ -162,6 +177,7 @@ const loading = ref(true)
 const categories = ref([])
 const featuredProducts = ref([])
 const newProducts = ref([])
+const recentOrders = ref([])
 const categoriesSection = ref(null)
 
 // Scroll to categories section with slower animation
@@ -427,6 +443,16 @@ onMounted(async () => {
     startCarouselAutoSlide()
   }, 1000)
   
+  // Fetch recent orders for mobile inline section
+  try {
+    const response = await api.get('/shop/recent-orders')
+    if (response.data && response.data.length > 0) {
+      recentOrders.value = response.data.slice(0, 5) // Max 5 for marquee
+    }
+  } catch (error) {
+    console.error('Failed to fetch recent orders:', error)
+  }
+  
   // Initialize scroll reveal
   nextTick(() => {
     initScrollReveal()
@@ -438,6 +464,11 @@ onUnmounted(() => {
   stopCarouselAutoSlide()
   window.removeEventListener('resize', updateItemsPerView)
 })
+
+// Helper format price
+const formatPrice = (price) => {
+  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0)
+}
 
 // Particle style generator
 const getParticleStyle = (n) => {
@@ -730,7 +761,7 @@ const initScrollReveal = () => {
 
 /* ===== SECTIONS ===== */
 .section {
-  padding: 5rem 0;
+  padding: 1rem 0;
   animation: fadeInUp 0.6s ease-out;
 }
 
@@ -1068,5 +1099,57 @@ const initScrollReveal = () => {
 .reveal.visible {
   opacity: 1;
   transform: translateY(0);
+}
+
+/* ===== RECENT ORDERS (Inline Marquee) ===== */
+.mobile-recent-orders {
+  display: block; /* Show on all devices */
+  background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(99, 102, 241, 0.15));
+  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  padding: 10px 0;
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .mobile-recent-orders {
+    display: block;
+  }
+}
+
+.recent-orders-marquee {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.marquee-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+
+.marquee-content {
+  display: flex;
+  gap: 20px;
+  animation: marqueeScroll 20s linear infinite;
+  white-space: nowrap;
+}
+
+.marquee-item {
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+.marquee-item strong {
+  color: var(--text);
+}
+
+.marquee-sep {
+  color: var(--text-muted);
+  margin-left: 10px;
+}
+
+@keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
 </style>

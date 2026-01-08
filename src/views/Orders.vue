@@ -109,7 +109,10 @@ const formatPrice = (price) => {
 }
 
 const formatDate = (date) => {
-  return new Date(date).toLocaleString('vi-VN')
+  if (!date) return 'N/A'
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return 'N/A'
+  return d.toLocaleString('vi-VN')
 }
 
 const statusClass = (status) => {

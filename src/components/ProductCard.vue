@@ -8,7 +8,7 @@
         loading="lazy"
       />
       <!-- Quick View Overlay -->
-      <div class="product-overlay">
+      <div class="product-overlay" @click.prevent="openQuickView">
         <span class="quick-view-btn">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
@@ -50,12 +50,20 @@
       <span class="sale-text">SALE</span>
     </div>
     <div v-if="isNew" class="new-badge">NEW</div>
+    
+    <!-- Quick View Modal -->
+    <QuickViewModal 
+      :show="showQuickView" 
+      :product="product" 
+      @close="showQuickView = false" 
+    />
   </router-link>
 </template>
 
 <script setup>
 import { computed, ref, onMounted, onUnmounted } from 'vue'
 import { getImageUrl } from '../utils/image'
+import QuickViewModal from './QuickViewModal.vue'
 
 const props = defineProps({
   product: {
@@ -65,6 +73,12 @@ const props = defineProps({
 })
 
 const cardRef = ref(null)
+const showQuickView = ref(false)
+
+const openQuickView = (e) => {
+  e.preventDefault()
+  showQuickView.value = true
+}
 
 const currentPrice = computed(() => props.product.sale_price || props.product.price)
 const isOnSale = computed(() => props.product.sale_price && props.product.sale_price < props.product.price)

@@ -129,7 +129,12 @@ const selectedOrder = ref(null)
 const filter = reactive({ status: '' })
 
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price) + 'đ'
-const formatDate = (date) => new Date(date).toLocaleString('vi-VN')
+const formatDate = (date) => {
+  if (!date) return 'N/A'
+  const d = new Date(date)
+  if (isNaN(d.getTime())) return 'N/A'
+  return d.toLocaleString('vi-VN')
+}
 
 const loadOrders = async () => {
   loading.value = true
