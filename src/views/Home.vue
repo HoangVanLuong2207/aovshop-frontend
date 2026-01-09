@@ -55,7 +55,7 @@
         <div class="recent-orders-marquee">
           <div class="marquee-content">
             <span v-for="(order, idx) in recentOrders" :key="idx" class="marquee-item">
-              <strong>{{ order.user }}</strong> vừa mua <strong>{{ order.product }}</strong> giá <strong>{{ formatPrice(order.price) }}</strong>
+              <strong>{{ order.user }}</strong> vừa mua <strong>{{ order.product }}</strong>
               <span class="marquee-sep">•</span>
             </span>
           </div>
@@ -464,11 +464,6 @@ onUnmounted(() => {
   stopCarouselAutoSlide()
   window.removeEventListener('resize', updateItemsPerView)
 })
-
-// Helper format price
-const formatPrice = (price) => {
-  return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price || 0)
-}
 
 // Particle style generator
 const getParticleStyle = (n) => {

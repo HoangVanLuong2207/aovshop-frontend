@@ -160,11 +160,8 @@ body {
   min-height: 100vh;
   width: 100%;
   overflow-x: hidden;
-}
-
-.public-layout {
   padding-top: 70px;
-  /* Compensate for fixed navbar on public pages */
+  /* Compensate for fixed navbar */
 }
 
 #app {
