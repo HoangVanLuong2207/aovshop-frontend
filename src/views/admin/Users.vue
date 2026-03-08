@@ -71,7 +71,7 @@
             </div>
             <div class="form-group">
               <label>Email</label>
-              <input v-model="editForm.email" type="email" class="form-input" />
+              <input v-model="editForm.email" type="text" class="form-input" />
             </div>
             <div class="form-group">
               <label>Role</label>

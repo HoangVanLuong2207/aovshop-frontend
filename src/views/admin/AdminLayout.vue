@@ -81,6 +81,16 @@ const themeStore = useThemeStore()
 const settingsStore = useSettingsStore()
 const isSidebarOpen = ref(false)
 
+import { onMounted, onUnmounted } from 'vue'
+
+onMounted(() => {
+  document.body.classList.add('admin-mode')
+})
+
+onUnmounted(() => {
+  document.body.classList.remove('admin-mode')
+})
+
 const toggleSidebar = () => {
   isSidebarOpen.value = !isSidebarOpen.value
 }
@@ -103,8 +113,15 @@ const closeSidebar = () => {
   display: flex;
   flex-direction: column;
   position: fixed;
+  top: 0;
+  left: 0;
   height: 100vh;
   overflow-y: auto;
+  z-index: 100;
+}
+
+:global(body.admin-mode) {
+  padding-top: 0 !important;
 }
 
 .sidebar-header {
