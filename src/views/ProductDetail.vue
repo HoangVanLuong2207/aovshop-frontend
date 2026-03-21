@@ -12,11 +12,18 @@
               class="product-main-image"
               :key="activeImage"
             />
-            <div v-if="isOnSale" class="sale-badge-lg">GIẢM GIÁ</div>
+            <div v-if="isOnSale" class="sale-badge-lg">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 4px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              Flash Sale
+            </div>
             <!-- Navigation arrows for gallery -->
             <template v-if="allImages.length > 1">
-              <button class="gallery-nav gallery-nav-prev" @click="prevImage">‹</button>
-              <button class="gallery-nav gallery-nav-next" @click="nextImage">›</button>
+              <button class="gallery-nav gallery-nav-prev" @click="prevImage" aria-label="Previous">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+              <button class="gallery-nav gallery-nav-next" @click="nextImage" aria-label="Next">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
             </template>
           </div>
           <!-- Thumbnails -->
@@ -49,11 +56,13 @@
           </div>
 
           <div class="product-meta-lg">
-            <div class="product-stock-status" :class="stockClass">
-              {{ stockText }}
+            <div class="product-stock-status">
+              <span class="stock-dot" :class="product?.stock > 0 ? 'bg-success' : 'bg-danger'"></span>
+              <span :class="stockClass">{{ stockText }}</span>
             </div>
             <div class="product-sold-lg">
-              🔥 Đã bán: {{ product.sold_count || 0 }}
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px; vertical-align: middle;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+              Đã bán: {{ product.sold_count || 0 }}
             </div>
           </div>
 
@@ -74,7 +83,8 @@
               @click="addToCart"
               :disabled="product.stock === 0"
             >
-              🛒 Thêm vào giỏ
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><circle cx="8" cy="21" r="1"></circle><circle cx="19" cy="21" r="1"></circle><path d="M2.05 2.05h2l2.66 12.42a2 2 0 0 0 2 1.58h9.78a2 2 0 0 0 1.95-1.57l1.65-7.43H5.12"></path></svg>
+              Thêm vào giỏ
             </button>
 
             <button 
@@ -82,7 +92,8 @@
               @click="buyNow"
               :disabled="product.stock === 0"
             >
-              ⚡ Mua ngay
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              Mua ngay
             </button>
           </div>
         </div>
@@ -159,9 +170,9 @@ const stockClass = computed(() => ({
 
 const stockText = computed(() => {
   if (!product.value) return ''
-  if (product.value.stock === 0) return '❌ Hết hàng'
-  if (product.value.stock <= 10) return `⚠️ Chỉ còn ${product.value.stock} sản phẩm`
-  return `✓ Còn hàng (${product.value.stock})`
+  if (product.value.stock === 0) return 'Hết hàng'
+  if (product.value.stock <= 10) return `Số lượng có hạn: ${product.value.stock}`
+  return `Còn hàng (${product.value.stock})`
 })
 
 const formatPrice = (price) => {
@@ -310,14 +321,30 @@ onMounted(async () => {
 
 .sale-badge-lg {
   position: absolute;
-  top: 20px;
-  left: 20px;
-  background: var(--danger);
+  top: 12px;
+  left: 12px;
+  background: rgba(239, 68, 68, 0.95);
+  backdrop-filter: blur(8px);
   color: white;
-  padding: 0.5rem 1rem;
-  border-radius: var(--radius-sm);
-  font-weight: 700;
+  padding: 6px 14px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 1.5px;
+  box-shadow: 0 8px 25px rgba(239, 68, 68, 0.4);
   z-index: 1;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  text-transform: uppercase;
+  display: flex;
+  align-items: center;
+  pointer-events: none;
+  animation: shine 3s infinite;
+}
+
+@keyframes shine {
+  0% { opacity: 0.95; }
+  50% { opacity: 1; box-shadow: 0 8px 30px rgba(239, 68, 68, 0.6); }
+  100% { opacity: 0.95; }
 }
 
 .product-content {
@@ -360,13 +387,31 @@ onMounted(async () => {
 }
 
 .discount-percent {
-  background: var(--danger);
-  color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: var(--radius-sm);
+  background: #fff5f5;
+  color: #f03e3e;
+  padding: 2px 8px;
+  border-radius: 4px;
   font-size: 0.85rem;
-  font-weight: 600;
+  font-weight: 700;
+  border: 1px solid #ffa8a8;
 }
+
+.product-stock-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+}
+
+.stock-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+.bg-success { background-color: var(--success); }
+.bg-danger { background-color: var(--danger); }
 
 .product-meta-lg {
   display: flex;

@@ -27,7 +27,7 @@
       <div class="product-pricing">
         <span class="product-price">{{ formatPrice(currentPrice) }}</span>
         <span v-if="isOnSale" class="product-price-old">{{ formatPrice(product.price) }}</span>
-        <span v-if="isOnSale" class="discount-badge">-{{ discountPercent }}%</span>
+        <span v-if="isOnSale" class="discount-badge">{{ discountPercent }}% OFF</span>
       </div>
       <div class="product-meta">
         <div class="product-stock" :class="stockClass">
@@ -35,7 +35,8 @@
           {{ stockText }}
         </div>
         <div class="product-sold">
-          🔥 {{ product.sold_count || 0 }}
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 2px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
+          {{ product.sold_count || 0 }}
         </div>
       </div>
       <!-- Stock Progress Bar -->
@@ -47,7 +48,8 @@
     
     <!-- Badges -->
     <div v-if="isOnSale" class="sale-badge">
-      <span class="sale-text">SALE</span>
+      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 2px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+      <span class="sale-text">FLASH SALE</span>
     </div>
     <div v-if="isNew" class="new-badge">NEW</div>
     
@@ -288,12 +290,13 @@ onUnmounted(() => {
 }
 
 .discount-badge {
-  background: linear-gradient(135deg, #ef4444, #dc2626);
-  color: white;
-  padding: 2px 8px;
+  background: #fff5f5;
+  color: #f03e3e;
+  padding: 1px 6px;
   border-radius: 4px;
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 700;
+  border: 1px solid #ffa8a8;
 }
 
 /* Meta */
@@ -354,19 +357,22 @@ onUnmounted(() => {
 /* Badges */
 .sale-badge {
   position: absolute;
-  top: 12px;
-  right: 12px;
-  background: linear-gradient(135deg, var(--danger), #ff6b6b);
+  top: 10px;
+  right: 10px;
+  background: rgba(239, 68, 68, 0.9);
+  backdrop-filter: blur(4px);
   color: white;
-  padding: 0.35rem 1rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
-  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 4px;
+  font-size: 0.65rem;
+  font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  animation: pulse-glow 2s ease-in-out infinite;
-  box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
+  letter-spacing: 1px;
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
   z-index: 2;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  display: flex;
+  align-items: center;
 }
 
 .sale-text {

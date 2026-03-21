@@ -1,7 +1,10 @@
 <template>
   <div class="admin-products">
     <div class="page-header flex-between">
-      <h1 class="page-title">📦 Quản lý sản phẩm</h1>
+      <h1 class="page-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z"></path><path d="m3.3 7 8.7 5 8.7-5"></path><path d="M12 22V12"></path></svg>
+        Quản lý sản phẩm
+      </h1>
       <button class="btn btn-primary" @click="openModal()">+ Thêm sản phẩm</button>
     </div>
 
@@ -16,7 +19,7 @@
           v-model="accountSearch" 
           type="text" 
           class="form-input" 
-          placeholder="🔍 Tìm tài khoản..." 
+          placeholder="Tìm tài khoản..." 
           @keyup.enter="searchAccount"
           style="width: 250px" 
         />
@@ -30,7 +33,7 @@
     <div v-if="accountSearchResult" class="account-search-result mb-3">
       <div class="alert" :class="accountSearchResult.found ? 'alert-success' : 'alert-warning'">
         <strong v-if="accountSearchResult.found">
-          ✅ Tài khoản "<span style="color: var(--primary); font-weight: 600;">{{ accountSearchResult.query }}</span>" thuộc sản phẩm: 
+          Tài khoản "{{ accountSearchResult.query }}" thuộc sản phẩm: 
           <router-link :to="`/admin/products`" @click="highlightProduct(accountSearchResult.product.id)">
             {{ accountSearchResult.product.name }}
           </router-link>
@@ -106,7 +109,7 @@
                   v-model="accountListSearch" 
                   type="text" 
                   class="form-input form-input-sm" 
-                  placeholder="🔍 Lọc tài khoản..." 
+                  placeholder="Lọc tài khoản..." 
                   style="width: 200px"
                 />
               </div>
@@ -202,7 +205,7 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="form-label">📸 Ảnh mô tả sản phẩm (gallery)</label>
+            <label class="form-label">Ảnh mô tả sản phẩm (gallery)</label>
             <div class="gallery-input-row">
               <input 
                 v-model="newImageUrl" 
@@ -219,9 +222,15 @@
               <div v-for="(img, index) in form.images" :key="index" class="gallery-item">
                 <img :src="img" alt="Gallery" class="gallery-thumb" @error="handleImageError" />
                 <div class="gallery-item-actions">
-                  <button type="button" class="btn-icon" @click="moveGalleryImage(index, -1)" :disabled="index === 0" title="Di chuyển lên">↑</button>
-                  <button type="button" class="btn-icon" @click="moveGalleryImage(index, 1)" :disabled="index === form.images.length - 1" title="Di chuyển xuống">↓</button>
-                  <button type="button" class="btn-icon btn-icon-danger" @click="removeGalleryImage(index)" title="Xóa">✕</button>
+                  <button type="button" class="btn-icon" @click="moveGalleryImage(index, -1)" :disabled="index === 0" title="Di chuyển lên">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="18 15 12 9 6 15"></polyline></svg>
+                  </button>
+                  <button type="button" class="btn-icon" @click="moveGalleryImage(index, 1)" :disabled="index === form.images.length - 1" title="Di chuyển xuống">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                  </button>
+                  <button type="button" class="btn-icon btn-icon-danger" @click="removeGalleryImage(index)" title="Xóa">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                  </button>
                 </div>
               </div>
             </div>
@@ -246,9 +255,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted, computed } from 'vue'
+import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { adminApi } from '../../api'
 import { useToast } from '../../composables/useToast'
+import { isDirectLink, convertDriveLink } from '../../utils/image'
 
 const { toast, confirm } = useToast()
 
@@ -301,11 +311,30 @@ const form = reactive({
 const newImageUrl = ref('')
 
 const addGalleryImage = () => {
-  const url = newImageUrl.value.trim()
+  const url = convertDriveLink(newImageUrl.value.trim())
   if (!url) return
   form.images.push(url)
   newImageUrl.value = ''
 }
+
+// Tự động chuyển đổi link Google Drive
+watch(() => form.image, (newVal) => {
+  if (newVal) {
+    const converted = convertDriveLink(newVal)
+    if (converted !== newVal) {
+      form.image = converted
+    }
+  }
+})
+
+watch(newImageUrl, (newVal) => {
+  if (newVal) {
+    const converted = convertDriveLink(newVal)
+    if (converted !== newVal) {
+      newImageUrl.value = converted
+    }
+  }
+})
 
 const removeGalleryImage = (index) => {
   form.images.splice(index, 1)
@@ -489,9 +518,6 @@ const handleImageError = (e) => {
   e.target.src = 'https://via.placeholder.com/200x150?text=Invalid+URL'
 }
 
-const isDirectLink = (url) => {
-  return /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url.split('?')[0])
-}
 
 const openModal = (product = null) => {
   editing.value = product
@@ -558,10 +584,11 @@ const saveProduct = async () => {
     }
 
     if (editing.value) {
-      await adminApi.updateProduct(editing.value.id, data)
+      const response = await adminApi.updateProduct(editing.value.id, data)
       const index = products.value.findIndex(p => p.id === editing.value.id)
       if (index !== -1) {
-        Object.assign(products.value[index], form)
+        // Sử dụng dữ liệu từ server trả về để đảm bảo cấu trúc (ví dụ: gallery images là objects)
+        Object.assign(products.value[index], response.data)
       }
       toast.success('Cập nhật sản phẩm thành công!')
     } else {

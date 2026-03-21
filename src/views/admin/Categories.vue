@@ -1,7 +1,10 @@
 <template>
   <div class="admin-categories">
     <div class="page-header flex-between">
-      <h1 class="page-title">📁 Quản lý danh mục</h1>
+      <h1 class="page-title">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 8px;"><path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path></svg>
+        Quản lý danh mục
+      </h1>
       <button class="btn btn-primary" @click="openModal()">+ Thêm danh mục</button>
     </div>
 
@@ -85,9 +88,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { adminApi } from '../../api'
 import { useToast } from '../../composables/useToast'
+import { isDirectLink, convertDriveLink } from '../../utils/image'
 
 const { toast, confirm } = useToast()
 
@@ -103,6 +107,16 @@ const form = reactive({
   description: '',
   image: '',
   active: true,
+})
+
+// Tự động chuyển đổi link Google Drive
+watch(() => form.image, (newVal) => {
+  if (newVal) {
+    const converted = convertDriveLink(newVal)
+    if (converted !== newVal) {
+      form.image = converted
+    }
+  }
 })
 
 const loadCategories = async () => {
@@ -121,9 +135,6 @@ const handleImageError = (e) => {
   e.target.src = 'https://via.placeholder.com/200x150?text=Invalid+URL'
 }
 
-const isDirectLink = (url) => {
-  return /\.(jpg|jpeg|png|webp|gif|svg)$/i.test(url.split('?')[0])
-}
 
 const openModal = (cat = null) => {
   editing.value = cat
