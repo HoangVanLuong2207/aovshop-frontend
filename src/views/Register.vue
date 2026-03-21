@@ -1,105 +1,83 @@
 <template>
   <div class="auth-page">
     <div class="auth-card">
-      <!-- Registration Success - Show verification message -->
-      <div v-if="registrationSuccess" class="verify-prompt">
-        <div class="success-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
-          </svg>
+      <h1 class="auth-title">Đăng ký</h1>
+      <p class="auth-subtitle">Tạo tài khoản mới</p>
+
+      <div v-if="error" class="alert alert-error">{{ error }}</div>
+
+      <form @submit.prevent="handleRegister">
+        <div class="form-group">
+          <label class="form-label">Họ tên</label>
+          <input 
+            v-model="form.name" 
+            type="text" 
+            class="form-input" 
+            placeholder="Nguyễn Văn A"
+            required
+          />
         </div>
-        <h1 class="auth-title">Kiểm tra email!</h1>
-        <p class="verify-text">
-          Chúng tôi đã gửi email xác thực đến <strong>{{ form.email }}</strong>. 
-          Vui lòng kiểm tra hộp thư (bao gồm cả spam) và click vào link xác thực.
-        </p>
-        <div class="verify-actions">
-          <button @click="resendEmail" class="btn btn-secondary" :disabled="resending">
-            {{ resending ? 'Đang gửi...' : 'Gửi lại email' }}
-          </button>
-          <router-link to="/login" class="btn btn-primary">
-            Về trang đăng nhập
-          </router-link>
+
+        <div class="form-group">
+          <label class="form-label">Email</label>
+          <input 
+            v-model="form.email" 
+            type="email" 
+            class="form-input" 
+            placeholder="your@email.com"
+            required
+          />
         </div>
-      </div>
 
-      <!-- Registration Form -->
-      <template v-else>
-        <h1 class="auth-title">Đăng ký</h1>
-        <p class="auth-subtitle">Tạo tài khoản mới</p>
+        <div class="form-group">
+          <label class="form-label">Mật khẩu</label>
+          <input 
+            v-model="form.password" 
+            type="password" 
+            class="form-input" 
+            placeholder="Tối thiểu 6 ký tự"
+            required
+            minlength="6"
+          />
+        </div>
 
-        <div v-if="error" class="alert alert-error">{{ error }}</div>
+        <div class="form-group">
+          <label class="form-label">Xác nhận mật khẩu</label>
+          <input 
+            v-model="form.password_confirmation" 
+            type="password" 
+            class="form-input" 
+            placeholder="Nhập lại mật khẩu"
+            required
+          />
+        </div>
 
-        <form @submit.prevent="handleRegister">
-          <div class="form-group">
-            <label class="form-label">Họ tên</label>
-            <input 
-              v-model="form.name" 
-              type="text" 
-              class="form-input" 
-              placeholder="Nguyễn Văn A"
-              required
-            />
-          </div>
+        <button type="submit" class="btn btn-primary btn-lg" style="width: 100%" :disabled="loading">
+          {{ loading ? 'Đang xử lý...' : 'Đăng ký' }}
+        </button>
+      </form>
 
-          <div class="form-group">
-            <label class="form-label">Email</label>
-            <input 
-              v-model="form.email" 
-              type="email" 
-              class="form-input" 
-              placeholder="your@email.com"
-              required
-            />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Mật khẩu</label>
-            <input 
-              v-model="form.password" 
-              type="password" 
-              class="form-input" 
-              placeholder="Tối thiểu 6 ký tự"
-              required
-              minlength="6"
-            />
-          </div>
-
-          <div class="form-group">
-            <label class="form-label">Xác nhận mật khẩu</label>
-            <input 
-              v-model="form.password_confirmation" 
-              type="password" 
-              class="form-input" 
-              placeholder="Nhập lại mật khẩu"
-              required
-            />
-          </div>
-
-          <button type="submit" class="btn btn-primary btn-lg" style="width: 100%" :disabled="loading">
-            {{ loading ? 'Đang xử lý...' : 'Đăng ký' }}
-          </button>
-        </form>
-
-        <p class="auth-footer">
-          Đã có tài khoản? 
-          <router-link to="/login">Đăng nhập</router-link>
-        </p>
-      </template>
+      <p class="auth-footer">
+        Đã có tài khoản? 
+        <router-link to="/login">Đăng nhập</router-link>
+      </p>
     </div>
   </div>
 </template>
 
 <script setup>
 import { ref, reactive } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '../stores/auth'
 import api from '../api'
 import { useToast } from '../composables/useToast'
 
+const router = useRouter()
+const authStore = useAuthStore()
 const { toast } = useToast()
 
 const loading = ref(false)
 const error = ref('')
-const registrationSuccess = ref(false)
 const resending = ref(false)
 
 const form = reactive({
@@ -119,14 +97,14 @@ const handleRegister = async () => {
   error.value = ''
   
   try {
-    const response = await api.post('/auth/register', {
+    await authStore.register({
       name: form.name,
       email: form.email,
       password: form.password,
     })
     
-    // Show verification prompt
-    registrationSuccess.value = true
+    toast.success('Đăng ký thành công!')
+    router.push(authStore.isAdmin ? '/admin' : '/')
   } catch (err) {
     error.value = err.response?.data?.message || 'Đăng ký thất bại'
   } finally {

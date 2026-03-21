@@ -192,7 +192,7 @@
             </small>
           </div>
           <div class="form-group">
-            <label class="form-label">URL hình ảnh sản phẩm</label>
+            <label class="form-label">URL hình ảnh sản phẩm (ảnh chính)</label>
             <input v-model="form.image" type="text" class="form-input" placeholder="https://example.com/image.jpg" />
             <small v-if="form.image && !isDirectLink(form.image)" class="text-warning d-block mt-1">
               ⚠️ Có vẻ bạn đang dùng link trang web thay vì link ảnh trực tiếp. Hãy dùng "Direct link" (kết thúc bằng .jpg, .png, ...).
@@ -200,6 +200,32 @@
             <div v-if="form.image" class="image-preview">
               <img :src="form.image" alt="Preview" @error="handleImageError" />
             </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">📸 Ảnh mô tả sản phẩm (gallery)</label>
+            <div class="gallery-input-row">
+              <input 
+                v-model="newImageUrl" 
+                type="text" 
+                class="form-input" 
+                placeholder="Dán URL ảnh rồi nhấn Thêm..." 
+                @keyup.enter="addGalleryImage"
+              />
+              <button type="button" class="btn btn-secondary btn-sm" @click="addGalleryImage" :disabled="!newImageUrl.trim()">
+                + Thêm
+              </button>
+            </div>
+            <div v-if="form.images.length > 0" class="gallery-list">
+              <div v-for="(img, index) in form.images" :key="index" class="gallery-item">
+                <img :src="img" alt="Gallery" class="gallery-thumb" @error="handleImageError" />
+                <div class="gallery-item-actions">
+                  <button type="button" class="btn-icon" @click="moveGalleryImage(index, -1)" :disabled="index === 0" title="Di chuyển lên">↑</button>
+                  <button type="button" class="btn-icon" @click="moveGalleryImage(index, 1)" :disabled="index === form.images.length - 1" title="Di chuyển xuống">↓</button>
+                  <button type="button" class="btn-icon btn-icon-danger" @click="removeGalleryImage(index)" title="Xóa">✕</button>
+                </div>
+              </div>
+            </div>
+            <small class="text-muted d-block mt-1">Thêm nhiều ảnh để mô tả chi tiết sản phẩm. Ảnh sẽ hiển thị ở trang chi tiết.</small>
           </div>
           <div class="form-group">
             <label class="form-label">
@@ -267,8 +293,31 @@ const form = reactive({
   sale_price: null,
   stock: 0,
   image: '',
+  images: [],
   active: true,
 })
+
+// Gallery image management
+const newImageUrl = ref('')
+
+const addGalleryImage = () => {
+  const url = newImageUrl.value.trim()
+  if (!url) return
+  form.images.push(url)
+  newImageUrl.value = ''
+}
+
+const removeGalleryImage = (index) => {
+  form.images.splice(index, 1)
+}
+
+const moveGalleryImage = (index, direction) => {
+  const newIndex = index + direction
+  if (newIndex < 0 || newIndex >= form.images.length) return
+  const temp = form.images[index]
+  form.images[index] = form.images[newIndex]
+  form.images[newIndex] = temp
+}
 
 // Account management state
 const showAccountModal = ref(false)
@@ -452,9 +501,10 @@ const openModal = (product = null) => {
       name: product.name,
       description: product.description || '',
       price: product.price,
-      sale_price: product.sale_price,
+      sale_price: product.sale_price || product.salePrice,
       stock: product.stock,
       image: product.image || '',
+      images: (product.images || []).sort((a, b) => a.sortOrder - b.sortOrder).map(img => img.url),
       active: product.active,
     })
   } else {
@@ -466,9 +516,11 @@ const openModal = (product = null) => {
       sale_price: null,
       stock: 0,
       image: '',
+      images: [],
       active: true,
     })
   }
+  newImageUrl.value = ''
   showModal.value = true
 }
 
@@ -501,6 +553,7 @@ const saveProduct = async () => {
       sale_price: form.sale_price,
       stock: form.stock,
       image: form.image,
+      images: form.images,
       active: form.active
     }
 
@@ -558,6 +611,76 @@ onMounted(() => {
   max-height: 150px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
+}
+
+/* Gallery styles */
+.gallery-input-row {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.gallery-input-row .form-input {
+  flex: 1;
+}
+
+.gallery-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.gallery-item {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem;
+  background: var(--bg-secondary);
+}
+
+.gallery-thumb {
+  width: 100px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: var(--radius-sm);
+  display: block;
+}
+
+.gallery-item-actions {
+  display: flex;
+  justify-content: center;
+  gap: 0.25rem;
+  margin-top: 0.25rem;
+}
+
+.btn-icon {
+  width: 24px;
+  height: 24px;
+  border: none;
+  background: var(--bg-tertiary);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.btn-icon:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.btn-icon:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+.btn-icon-danger:hover {
+  background: var(--danger);
+  color: white;
 }
 
 /* Mobile responsive table */

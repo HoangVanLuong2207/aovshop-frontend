@@ -5,12 +5,32 @@
       
       <div v-else-if="product" class="product-detail">
         <div class="product-gallery">
-          <img 
-            :src="getImageUrl(product.image)" 
-            :alt="product.name"
-            class="product-main-image"
-          />
-          <div v-if="isOnSale" class="sale-badge-lg">GIẢM GIÁ</div>
+          <div class="main-image-wrapper">
+            <img 
+              :src="getImageUrl(activeImage)" 
+              :alt="product.name"
+              class="product-main-image"
+              :key="activeImage"
+            />
+            <div v-if="isOnSale" class="sale-badge-lg">GIẢM GIÁ</div>
+            <!-- Navigation arrows for gallery -->
+            <template v-if="allImages.length > 1">
+              <button class="gallery-nav gallery-nav-prev" @click="prevImage">‹</button>
+              <button class="gallery-nav gallery-nav-next" @click="nextImage">›</button>
+            </template>
+          </div>
+          <!-- Thumbnails -->
+          <div v-if="allImages.length > 1" class="gallery-thumbnails">
+            <button
+              v-for="(img, index) in allImages"
+              :key="index"
+              class="gallery-thumb-btn"
+              :class="{ active: activeImageIndex === index }"
+              @click="activeImageIndex = index"
+            >
+              <img :src="getImageUrl(img)" :alt="`Ảnh ${index + 1}`" />
+            </button>
+          </div>
         </div>
 
         <div class="product-content">
@@ -95,6 +115,38 @@ const authStore = useAuthStore()
 const loading = ref(true)
 const product = ref(null)
 const quantity = ref(1)
+const activeImageIndex = ref(0)
+
+// Combine main image + gallery images
+const allImages = computed(() => {
+  if (!product.value) return []
+  const imgs = []
+  if (product.value.image) imgs.push(product.value.image)
+  if (product.value.images && product.value.images.length > 0) {
+    const sortedGallery = [...product.value.images]
+      .sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0))
+      .map(img => img.url)
+    imgs.push(...sortedGallery)
+  }
+  return imgs
+})
+
+const activeImage = computed(() => {
+  if (allImages.value.length === 0) return null
+  return allImages.value[activeImageIndex.value] || allImages.value[0]
+})
+
+const prevImage = () => {
+  activeImageIndex.value = activeImageIndex.value > 0
+    ? activeImageIndex.value - 1
+    : allImages.value.length - 1
+}
+
+const nextImage = () => {
+  activeImageIndex.value = activeImageIndex.value < allImages.value.length - 1
+    ? activeImageIndex.value + 1
+    : 0
+}
 
 const currentPrice = computed(() => product.value?.sale_price || product.value?.price)
 const isOnSale = computed(() => product.value?.sale_price && product.value.sale_price < product.value.price)
@@ -170,10 +222,90 @@ onMounted(async () => {
   position: relative;
 }
 
-.product-main-image {
-  width: 100%;
+.main-image-wrapper {
+  position: relative;
+  overflow: hidden;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
+}
+
+.product-main-image {
+  width: 100%;
+  display: block;
+  transition: opacity 0.3s ease;
+}
+
+.gallery-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 40px;
+  height: 40px;
+  border: none;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 1.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 2;
+}
+
+.main-image-wrapper:hover .gallery-nav {
+  opacity: 1;
+}
+
+.gallery-nav:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.gallery-nav-prev {
+  left: 10px;
+}
+
+.gallery-nav-next {
+  right: 10px;
+}
+
+.gallery-thumbnails {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.75rem;
+  overflow-x: auto;
+  padding-bottom: 0.25rem;
+}
+
+.gallery-thumb-btn {
+  flex-shrink: 0;
+  width: 72px;
+  height: 72px;
+  border: 2px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  background: var(--bg-secondary);
+  cursor: pointer;
+  transition: all 0.2s;
+  overflow: hidden;
+}
+
+.gallery-thumb-btn.active {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.3);
+}
+
+.gallery-thumb-btn:hover {
+  border-color: var(--primary);
+}
+
+.gallery-thumb-btn img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 4px;
 }
 
 .sale-badge-lg {
@@ -185,6 +317,7 @@ onMounted(async () => {
   padding: 0.5rem 1rem;
   border-radius: var(--radius-sm);
   font-weight: 700;
+  z-index: 1;
 }
 
 .product-content {

@@ -19,7 +19,10 @@
         </div>
 
         <div class="form-group">
-          <label class="form-label">Mật khẩu</label>
+          <div class="label-row">
+            <label class="form-label">Mật khẩu</label>
+            <router-link to="/forgot-password" class="forgot-link">Quên mật khẩu?</router-link>
+          </div>
           <input 
             v-model="form.password" 
             type="password" 
@@ -109,5 +112,26 @@ const handleLogin = async () => {
   text-align: center;
   margin-top: 1.5rem;
   color: var(--text-secondary);
+}
+
+.label-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.5rem;
+}
+
+.label-row .form-label {
+  margin-bottom: 0;
+}
+
+.forgot-link {
+  font-size: 0.85rem;
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.forgot-link:hover {
+  text-decoration: underline;
 }
 </style>
