@@ -245,11 +245,11 @@ onUnmounted(() => {
 }
 
 .navbar-scrolled .navbar-logo span {
-  font-size: 1rem;
+  font-size: 1.1rem; /* Tăng nhẹ từ 1rem */
 }
 
 .navbar-scrolled .shop-logo-img {
-  height: 28px;
+  height: 38px; /* Tăng từ 28px */
 }
 
 .navbar-scrolled .balance-badge {
@@ -265,13 +265,16 @@ onUnmounted(() => {
 .navbar-logo {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
+  font-weight: 700;
+  font-size: 1.25rem;
 }
 
 .shop-logo-img {
-  height: 32px;
+  height: 50px; /* Tăng từ 32px */
   width: auto;
-  border-radius: 4px;
+  border-radius: 8px;
+  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.2));
 }
 
 /* Nav Dropdown (Categories) */

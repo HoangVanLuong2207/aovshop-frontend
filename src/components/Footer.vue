@@ -110,18 +110,18 @@ const currentYear = computed(() => new Date().getFullYear())
 }
 
 .logo-img {
-  height: 60px; /* Tăng từ 40px */
+  height: 100px; /* Tăng lên 200px */
   object-fit: contain;
-  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.3));
+  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
 }
 
 .logo-text {
-  font-size: 2rem; /* Tăng từ 1.75rem */
+  font-size: 3.5rem; /* Tăng lên 3.5rem */
   font-weight: 800;
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 10px rgba(99, 102, 241, 0.2));
+  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
 }
 
 .shop-description {
