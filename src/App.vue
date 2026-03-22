@@ -25,8 +25,8 @@
     </router-view>
     <ToastContainer />
     
-    <!-- Floating UI Elements (only on non-admin pages) -->
     <template v-if="!isAdminRoute">
+      <Footer />
       <BackToTop />
       <FloatingChat />
       <NotificationFeed />
@@ -42,6 +42,7 @@ import ToastContainer from './components/ToastContainer.vue'
 import BackToTop from './components/BackToTop.vue'
 import FloatingChat from './components/FloatingChat.vue'
 import NotificationFeed from './components/NotificationFeed.vue'
+import Footer from './components/Footer.vue'
 import { useAuthStore } from './stores/auth'
 import { useSettingsStore } from './stores/settings'
 import api from './api'
