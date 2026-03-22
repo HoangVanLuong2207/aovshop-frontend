@@ -150,7 +150,6 @@
     </div>
 
     <div class="settings-column">
-    </div>
         
     <!-- Contact Settings Section -->
     <div class="settings-section">
@@ -259,14 +258,12 @@
           </div>
           <div class="modal-actions">
             <button class="btn btn-primary" @click="saveAccount">💾 Lưu</button>
-            <button class="btn btn-secondary" @click="showAddAccountModal = false">Hủy</button>
           </div>
         </div>
       </div>
     </Transition>
     </div>
     </div>
-  
   </div>
 </template>
 
