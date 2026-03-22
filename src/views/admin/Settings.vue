@@ -150,83 +150,6 @@
     </div>
 
     <div class="settings-column">
-    <div class="settings-section">
-      <h2>🏦 Cấu hình SePay / Thanh toán</h2>
-      
-      <form @submit.prevent="saveSettings" class="settings-form">
-        <div class="form-group">
-          <label>Merchant ID</label>
-          <input 
-            type="text" 
-            v-model="settings.sepay_merchant_id" 
-            class="form-input"
-            placeholder="Nhập Merchant ID từ SePay"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Secret Key</label>
-          <input 
-            type="password" 
-            v-model="settings.sepay_secret_key" 
-            class="form-input"
-            placeholder="Nhập Secret Key từ SePay"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Tên ngân hàng</label>
-          <select v-model="settings.sepay_bank_name" class="form-input">
-            <option value="">-- Chọn ngân hàng --</option>
-            <option value="MB">MB Bank</option>
-            <option value="VCB">Vietcombank</option>
-            <option value="ACB">ACB</option>
-            <option value="TCB">Techcombank</option>
-            <option value="VPB">VPBank</option>
-            <option value="TPB">TPBank</option>
-            <option value="BIDV">BIDV</option>
-            <option value="VIB">VIB</option>
-            <option value="MSB">MSB</option>
-            <option value="OCB">OCB</option>
-          </select>
-        </div>
-
-        <div class="form-group">
-          <label>Số tài khoản</label>
-          <input 
-            type="text" 
-            v-model="settings.sepay_bank_account" 
-            class="form-input"
-            placeholder="Nhập số tài khoản ngân hàng"
-          />
-        </div>
-
-        <div class="form-group">
-          <label>Tên chủ tài khoản</label>
-          <input 
-            type="text" 
-            v-model="settings.sepay_account_name" 
-            class="form-input"
-            placeholder="Nhập tên chủ tài khoản (viết hoa, không dấu)"
-          />
-        </div>
-
-       
-
-        <div class="form-actions">
-          <button type="submit" class="btn btn-primary" :disabled="saving">
-            {{ saving ? 'Đang lưu...' : '💾 Lưu cài đặt' }}
-          </button>
-        </div>
-      <div class="settings-section">
-      <h2>ℹ️ Hướng dẫn</h2>
-      <ol>
-        <li>Đăng nhập vào <a href="https://my.sepay.vn" target="_blank">SePay Dashboard</a></li>
-        <li>Vào phần <strong>Cài đặt</strong> → <strong>API</strong></li>
-        <li>Copy <strong>Merchant ID</strong> và <strong>Secret Key</strong></li>
-        <li>Thêm webhook URL ở trên vào cài đặt Webhook của SePay</li>
-        <li>Nhập thông tin tài khoản ngân hàng nhận tiền</li>
-      </ol>
     </div>
         
     <!-- Contact Settings Section -->
@@ -272,8 +195,6 @@
             {{ saving ? 'Đang lưu...' : '💾 Lưu liên hệ' }}
           </button>
         </div>
-      </form>
-    </div>
       </form>
     </div>
 
@@ -328,6 +249,14 @@
             <label>Tên chủ tài khoản</label>
             <input v-model="accountForm.accountName" type="text" class="form-input" />
           </div>
+          <div class="form-group">
+            <label>Merchant ID (SePay)</label>
+            <input v-model="accountForm.merchantId" type="text" class="form-input" placeholder="SP-LIVE-xxxxxxx" />
+          </div>
+          <div class="form-group">
+            <label>Secret Key (SePay)</label>
+            <input v-model="accountForm.secretKey" type="password" class="form-input" placeholder="Nhập Secret Key" />
+          </div>
           <div class="modal-actions">
             <button class="btn btn-primary" @click="saveAccount">💾 Lưu</button>
             <button class="btn btn-secondary" @click="showAddAccountModal = false">Hủy</button>
@@ -374,6 +303,8 @@ const accountForm = ref({
   bankName: 'MB',
   accountNumber: '',
   accountName: '',
+  merchantId: '',
+  secretKey: '',
   isActive: true
 })
 
@@ -523,7 +454,7 @@ const saveAccount = async () => {
     }
     showAddAccountModal.value = false
     editingAccount.value = null
-    accountForm.value = { bankName: 'MB', accountNumber: '', accountName: '', isActive: true }
+    accountForm.value = { bankName: 'MB', accountNumber: '', accountName: '', merchantId: '', secretKey: '', isActive: true }
     loadPaymentAccounts()
   } catch (error) {
     toast.error('Lỗi khi lưu tài khoản')
