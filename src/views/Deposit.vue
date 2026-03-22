@@ -57,6 +57,7 @@
         </div>
 
         <!-- Payment Info (show after order created) -->
+        <!-- Payment Info Section -->
         <div v-if="paymentInfo && !showPaymentModal" class="payment-info card" style="margin-top: 20px;">
           <div class="card-header">
             Thông tin chuyển khoản
@@ -70,20 +71,7 @@
             </div>
           </div>
           <div class="card-body">
-            <!-- Bank Selection Tabs -->
-            <div class="bank-selector">
-              <div 
-                v-for="bank in activeBanks" 
-                :key="bank.id" 
-                class="bank-tab"
-                :class="{ active: selectedBank?.id === bank.id }"
-                @click="selectBank(bank)"
-              >
-                <div class="bank-tab-name">{{ bank.bankName }}</div>
-              </div>
-            </div>
-
-            <div v-if="selectedBank" class="payment-details-grid">
+            <div class="payment-details-grid">
               <div class="qr-section">
                 <img :src="qrUrl" alt="QR Code" class="qr-code" />
                 <p class="qr-note">Quét mã QR để chuyển khoản nhanh</p>
@@ -92,25 +80,26 @@
               <div class="info-section">
                 <div class="info-row">
                   <span>Ngân hàng:</span>
-                  <strong>{{ selectedBank.bankName }}</strong>
+                  <strong>{{ paymentInfo.bank_name || (paymentInfo.bank && paymentInfo.bank.bankName) }}</strong>
                 </div>
                 <div class="info-row">
                   <span>Số tài khoản:</span>
-                  <strong>{{ selectedBank.accountNumber }}</strong>
-                  <button class="btn-copy" @click="copy(selectedBank.accountNumber)">📋</button>
+                  <strong>{{ paymentInfo.account_number || (paymentInfo.bank && paymentInfo.bank.accountNumber) }}</strong>
+                  <button class="btn-copy" @click="copy(paymentInfo.account_number || (paymentInfo.bank && paymentInfo.bank.accountNumber))">📋</button>
                 </div>
                 <div class="info-row">
                   <span>Chủ tài khoản:</span>
-                  <strong>{{ selectedBank.accountName }}</strong>
+                  <strong>{{ paymentInfo.account_name || (paymentInfo.bank && paymentInfo.bank.accountName) }}</strong>
                 </div>
                 <div class="info-row highlight">
                   <span>Nội dung chuyển khoản:</span>
-                  <strong>{{ paymentInfo.content }}</strong>
-                  <button class="btn-copy" @click="copy(paymentInfo.content)">📋</button>
+                  <strong>{{ paymentInfo.reference || paymentInfo.content }}</strong>
+                  <button class="btn-copy" @click="copy(paymentInfo.reference || paymentInfo.content)">📋</button>
                 </div>
                 <div class="info-row highlight">
                   <span>Số tiền:</span>
                   <strong class="text-success">{{ formatPrice(paymentInfo.amount) }}</strong>
+                  <button class="btn-copy" @click="copy(paymentInfo.amount)">📋</button>
                 </div>
               </div>
             </div>
@@ -119,7 +108,7 @@
               <strong>⚠️ Quan trọng:</strong>
               <ul>
                 <li>Chuyển đúng số tiền: <strong>{{ formatPrice(paymentInfo.amount) }}</strong></li>
-                <li>Nội dung <strong>BẮT BUỘC</strong>: <strong>{{ paymentInfo.content }}</strong></li>
+                <li>Nội dung <strong>BẮT BUỘC</strong>: <strong>{{ paymentInfo.reference || paymentInfo.content }}</strong></li>
                 <li>Tiền sẽ được cộng <strong>tự động</strong> sau 1-5 phút</li>
               </ul>
             </div>
@@ -149,20 +138,7 @@
                 <button class="modal-close" @click="closePaymentModal">&times;</button>
               </div>
               <div class="modal-body">
-                <!-- Bank Selection Tabs in Modal -->
-                <div class="bank-selector scrollable">
-                  <div 
-                    v-for="bank in activeBanks" 
-                    :key="bank.id" 
-                    class="bank-tab"
-                    :class="{ active: selectedBank?.id === bank.id }"
-                    @click="selectBank(bank)"
-                  >
-                    <div class="bank-tab-name">{{ bank.bankName }}</div>
-                  </div>
-                </div>
-
-                <div v-if="selectedBank" class="modal-grid">
+                <div class="modal-grid">
                   <div class="qr-section">
                     <img :src="qrUrl" alt="QR Code" class="qr-code" />
                     <p class="qr-note">Quét mã QR</p>
@@ -171,25 +147,26 @@
                   <div class="info-section">
                     <div class="info-row">
                       <span>Ngân hàng:</span>
-                      <strong>{{ selectedBank.bankName }}</strong>
+                      <strong>{{ paymentInfo.bank_name || (paymentInfo.bank && paymentInfo.bank.bankName) }}</strong>
                     </div>
                     <div class="info-row">
                       <span>STK:</span>
-                      <strong>{{ selectedBank.accountNumber }}</strong>
-                      <button class="btn-copy" @click="copy(selectedBank.accountNumber)">📋</button>
+                      <strong>{{ paymentInfo.account_number || (paymentInfo.bank && paymentInfo.bank.accountNumber) }}</strong>
+                      <button class="btn-copy" @click="copy(paymentInfo.account_number || (paymentInfo.bank && paymentInfo.bank.accountNumber))">📋</button>
                     </div>
                     <div class="info-row">
                       <span>Chủ TK:</span>
-                      <strong>{{ selectedBank.accountName }}</strong>
+                      <strong>{{ paymentInfo.account_name || (paymentInfo.bank && paymentInfo.bank.accountName) }}</strong>
                     </div>
                     <div class="info-row highlight">
                       <span>Số tiền:</span>
                       <strong class="text-success">{{ formatPrice(paymentInfo.amount) }}</strong>
+                      <button class="btn-copy" @click="copy(paymentInfo.amount)">📋</button>
                     </div>
                     <div class="info-row highlight">
                       <span>Nội dung:</span>
-                      <strong>{{ paymentInfo.content }}</strong>
-                      <button class="btn-copy" @click="copy(paymentInfo.content)">📋</button>
+                      <strong>{{ paymentInfo.reference || paymentInfo.content }}</strong>
+                      <button class="btn-copy" @click="copy(paymentInfo.reference || paymentInfo.content)">📋</button>
                     </div>
                   </div>
                 </div>
@@ -350,22 +327,12 @@ const selectPendingDeposit = async (tx) => {
   
   try {
     // Construct payment info from deposit record
+    // Use assigned bank from transaction history
     paymentInfo.value = {
-      amount: tx.amount,
-      order_code: tx.id,
+      ...tx,
       content: tx.reference,
     }
 
-    // Load banks if not loaded
-    if (activeBanks.value.length === 0) {
-      await fetchBanks()
-    }
-    
-    // Select first bank if none selected
-    if (!selectedBank.value && activeBanks.value.length > 0) {
-      selectedBank.value = activeBanks.value[0]
-    }
-    
     // Show modal
     showPaymentModal.value = true
     
@@ -394,8 +361,14 @@ const selectBank = (bank) => {
 }
 
 const qrUrl = computed(() => {
-  if (!paymentInfo.value || !selectedBank.value) return ''
-  return `https://img.vietqr.io/image/${selectedBank.value.bankName}-${selectedBank.value.accountNumber}-compact2.png?amount=${paymentInfo.value.amount}&addInfo=${paymentInfo.value.content}&accountName=${encodeURIComponent(selectedBank.value.accountName)}`
+  if (!paymentInfo.value) return ''
+  if (paymentInfo.value.qr_url) return paymentInfo.value.qr_url
+
+  const bank = paymentInfo.value.bank
+  if (bank) {
+    return `https://img.vietqr.io/image/${bank.bankName}-${bank.accountNumber}-compact2.png?amount=${paymentInfo.value.amount}&addInfo=${paymentInfo.value.content}&accountName=${encodeURIComponent(bank.accountName)}`
+  }
+  return ''
 })
 
 const closePaymentModal = () => {
@@ -447,7 +420,10 @@ const createOrder = async () => {
   creating.value = true
   try {
     const response = await api.post('/deposit/create', { amount: amount.value })
-    paymentInfo.value = response.data.payment_info
+    paymentInfo.value = {
+      ...response.data,
+      content: response.data.reference
+    }
     showPaymentModal.value = true
     loadTransactions()
     
