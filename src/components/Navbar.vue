@@ -249,7 +249,7 @@ onUnmounted(() => {
 }
 
 .navbar-scrolled .shop-logo-img {
-  height: 38px; /* Tăng từ 28px */
+  height: 10px; /* Tăng từ 28px */
 }
 
 .navbar-scrolled .balance-badge {
@@ -271,7 +271,7 @@ onUnmounted(() => {
 }
 
 .shop-logo-img {
-  height: 50px; /* Tăng từ 32px */
+  height: 32px; /* Tăng từ 32px */
   width: auto;
   border-radius: 8px;
   filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.2));

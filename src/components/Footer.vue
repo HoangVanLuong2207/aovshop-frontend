@@ -110,7 +110,7 @@ const currentYear = computed(() => new Date().getFullYear())
 }
 
 .logo-img {
-  height: 100px; /* Tăng lên 200px */
+  height: 50px; /* Tăng lên 200px */
   object-fit: contain;
   filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
 }
