@@ -278,6 +278,63 @@
     </div>
 
 
+    <!-- Payment Accounts Section -->
+    <div class="settings-section">
+      <h2>💳 Danh sách tài khoản ngân hàng</h2>
+      <p class="section-desc">Cấu hình các tài khoản ngân hàng để khách hàng chuyển khoản nạp tiền.</p>
+      
+      <div class="payment-accounts-list">
+        <div v-for="account in paymentAccountsList" :key="account.id" class="account-card">
+          <div class="account-info">
+            <div class="account-bank">{{ account.bankName }}</div>
+            <div class="account-number">{{ account.accountNumber }}</div>
+            <div class="account-name">{{ account.accountName }}</div>
+          </div>
+          <div class="account-actions">
+            <button class="btn btn-sm" @click="editAccount(account)">✏️</button>
+            <button class="btn btn-danger btn-sm" @click="deleteAccount(account.id)">✕</button>
+          </div>
+        </div>
+        
+        <button class="btn btn-secondary btn-block" @click="showAddAccountModal = true">
+          + Thêm tài khoản ngân hàng
+        </button>
+      </div>
+    </div>
+
+    <!-- Add/Edit Account Modal -->
+    <Transition name="modal">
+      <div v-if="showAddAccountModal" class="modal-overlay" @click.self="showAddAccountModal = false">
+        <div class="modal-card">
+          <h3>{{ editingAccount ? 'Chỉnh sửa tài khoản' : 'Thêm tài khoản mới' }}</h3>
+          <div class="form-group">
+            <label>Ngân hàng</label>
+            <select v-model="accountForm.bankName" class="form-input">
+              <option value="MB">MB Bank</option>
+              <option value="VCB">Vietcombank</option>
+              <option value="ACB">ACB</option>
+              <option value="TCB">Techcombank</option>
+              <option value="VPB">VPBank</option>
+              <option value="TPB">TPBank</option>
+              <option value="BIDV">BIDV</option>
+              <option value="VIB">VIB</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Số tài khoản</label>
+            <input v-model="accountForm.accountNumber" type="text" class="form-input" />
+          </div>
+          <div class="form-group">
+            <label>Tên chủ tài khoản</label>
+            <input v-model="accountForm.accountName" type="text" class="form-input" />
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" @click="saveAccount">💾 Lưu</button>
+            <button class="btn btn-secondary" @click="showAddAccountModal = false">Hủy</button>
+          </div>
+        </div>
+      </div>
+    </Transition>
     </div>
     </div>
   
@@ -308,6 +365,16 @@ const settings = ref({
   contact_zalo: '',
   contact_messenger: '',
   contact_hotline: '',
+})
+
+const paymentAccountsList = ref([])
+const showAddAccountModal = ref(false)
+const editingAccount = ref(null)
+const accountForm = ref({
+  bankName: 'MB',
+  accountNumber: '',
+  accountName: '',
+  isActive: true
 })
 
 const saving = ref(false)
@@ -430,7 +497,54 @@ const insertImage = () => {
   insertAtCursor(`<img src="${url}" style="max-width: 100%; border-radius: 8px;" />`)
 }
 
-onMounted(loadSettings)
+const loadPaymentAccounts = async () => {
+  try {
+    const response = await api.get('/admin/payment-accounts')
+    paymentAccountsList.value = response.data.data
+  } catch (error) {
+    console.error('Error loading payment accounts:', error)
+  }
+}
+
+const editAccount = (account) => {
+  editingAccount.value = account
+  accountForm.value = { ...account }
+  showAddAccountModal.value = true
+}
+
+const saveAccount = async () => {
+  try {
+    if (editingAccount.value) {
+      await api.patch(`/admin/payment-accounts/${editingAccount.value.id}`, accountForm.value)
+      toast.success('Cập nhật tài khoản thành công')
+    } else {
+      await api.post('/admin/payment-accounts', accountForm.value)
+      toast.success('Thêm tài khoản thành công')
+    }
+    showAddAccountModal.value = false
+    editingAccount.value = null
+    accountForm.value = { bankName: 'MB', accountNumber: '', accountName: '', isActive: true }
+    loadPaymentAccounts()
+  } catch (error) {
+    toast.error('Lỗi khi lưu tài khoản')
+  }
+}
+
+const deleteAccount = async (id) => {
+  if (!confirm('Bạn có chắc chắn muốn xóa tài khoản này?')) return
+  try {
+    await api.delete(`/admin/payment-accounts/${id}`)
+    toast.success('Đã xóa tài khoản')
+    loadPaymentAccounts()
+  } catch (error) {
+    toast.error('Lỗi khi xóa tài khoản')
+  }
+}
+
+onMounted(() => {
+  loadSettings()
+  loadPaymentAccounts()
+})
 </script>
 
 <style scoped>
@@ -789,5 +903,93 @@ small {
   object-fit: cover;
   border-radius: 6px;
   border: 1px solid var(--border);
+}
+
+/* Payment Accounts Styles */
+.payment-accounts-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.account-card {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  background: var(--bg-tertiary);
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.account-bank {
+  font-weight: 700;
+  color: var(--primary);
+  font-size: 1.1rem;
+}
+
+.account-number {
+  font-family: monospace;
+  font-size: 1rem;
+  margin: 4px 0;
+}
+
+.account-name {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  text-transform: uppercase;
+}
+
+.account-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  background: var(--bg-secondary);
+  padding: 24px;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 400px;
+  border: 1px solid var(--border);
+}
+
+.modal-card h3 {
+  margin-bottom: 20px;
+}
+
+.modal-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modal-actions button {
+  flex: 1;
+}
+
+.section-desc {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+.btn-block {
+  width: 100%;
 }
 </style>
