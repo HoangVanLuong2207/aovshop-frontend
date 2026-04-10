@@ -264,6 +264,41 @@
     </Transition>
     </div>
     </div>
+
+    <!-- API Settings Section -->
+    <div class="settings-section" style="margin-top: 24px;">
+      <h2>🔑 API cho Công cụ (Tool)</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+        Mã bí mật dùng để xác thực cho các công cụ tự động (như tool thêm acc từ máy tính).
+      </p>
+      
+      <form @submit.prevent="saveSettings" class="settings-form">
+        <div class="form-group">
+          <label>Secret API Token</label>
+          <div style="display: flex; gap: 8px;">
+            <input 
+              v-model="settings.api_auth_token" 
+              :type="showToken ? 'text' : 'password'" 
+              class="form-input" 
+              placeholder="Nhập mã bí mật..."
+            />
+            <button type="button" class="btn btn-secondary btn-sm" @click="showToken = !showToken">
+              {{ showToken ? '👁️' : '🙈' }}
+            </button>
+            <button type="button" class="btn btn-secondary btn-sm" @click="generateApiToken">
+              Tạo mã
+            </button>
+          </div>
+          <small>Lưu ý: Sau khi đổi mã, bạn phải cập nhật lại mã mới vào Tool Python.</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" :disabled="saving">
+            {{ saving ? 'Đang lưu...' : '💾 Lưu mã API' }}
+          </button>
+        </div>
+      </form>
+    </div>
   </div>
 </template>
 
@@ -291,7 +326,18 @@ const settings = ref({
   contact_zalo: '',
   contact_messenger: '',
   contact_hotline: '',
+  api_auth_token: '',
 })
+
+const showToken = ref(false)
+const generateApiToken = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789'
+    let result = 'ak_'
+    for (let i = 0; i < 32; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length))
+    }
+    settings.value.api_auth_token = result
+}
 
 const paymentAccountsList = ref([])
 const showAddAccountModal = ref(false)

@@ -241,6 +241,34 @@
               <input type="checkbox" v-model="form.active" /> Đang bán
             </label>
           </div>
+
+          <!-- Export API Section -->
+          <div v-if="editing" class="api-export-section mt-4 pt-3 border-top">
+            <div class="flex-items-center mb-2" style="gap: 8px;">
+              <h4 style="margin: 0; font-size: 1rem;">🚀 Tích hợp API cho Tool</h4>
+              <span class="badge badge-info" style="font-size: 0.75rem;">Developer</span>
+            </div>
+            <p class="text-muted small mb-3">Dùng Endpoint này để tự động đẩy tài khoản vào kho từ Tool Python.</p>
+            
+            <div class="form-group mb-3">
+              <label class="form-label small">URL Endpoint (POST):</label>
+              <div class="code-block-wrapper">
+                <code class="code-content">{{ getApiUrl(editing.id) }}</code>
+                <button type="button" class="copy-btn" @click="copyToClipboard(getApiUrl(editing.id))">Copy</button>
+              </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label small">Mẫu JSON Body:</label>
+              <div class="code-block-wrapper">
+                <pre class="code-content" style="margin: 0;">{{ getApiJson() }}</pre>
+                <button type="button" class="copy-btn" @click="copyToClipboard(getApiJson())">Copy</button>
+              </div>
+            </div>
+            <small class="text-info mt-2 d-block">
+              * Sử dụng <strong>Secret API Token</strong> trong Settings để xác thực.
+            </small>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="closeModal">Hủy</button>
@@ -604,17 +632,20 @@ const saveProduct = async () => {
   }
 }
 
-const deleteProduct = async (product) => {
-  const confirmed = await confirm(`Xóa sản phẩm "${product.name}"?`, { type: 'danger', title: 'Xóa sản phẩm' })
-  if (!confirmed) return
-  
-  try {
-    await adminApi.deleteProduct(product.id)
-    // Optimized: Update local state
-    products.value = products.value.filter(p => p.id !== product.id)
-  } catch (error) {
-    toast.error(error.response?.data?.message || 'Xóa thất bại')
-  }
+const copyToClipboard = (text) => {
+  navigator.clipboard.writeText(text)
+  toast.success('Đã sao chép vào bộ nhớ tạm!')
+}
+
+const getApiUrl = (id) => {
+  const baseUrl = window.location.origin
+  return `${baseUrl}/api/admin/products/${id}/accounts`
+}
+
+const getApiJson = () => {
+  return JSON.stringify({
+    accounts: "user1|pass1|mail1\nuser2|pass2|mail2"
+  }, null, 2)
 }
 
 onMounted(() => {
@@ -797,6 +828,55 @@ onMounted(() => {
 .btn-close:hover {
   opacity: 1;
 }
+
+/* API Export Styles */
+.api-export-section {
+  border-top: 1px solid var(--border);
+}
+
+.code-block-wrapper {
+  position: relative;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 10px;
+  padding-right: 60px;
+}
+
+.code-content {
+  font-family: 'Courier New', Courier, monospace;
+  font-size: 0.85rem;
+  color: var(--primary);
+  word-break: break-all;
+}
+
+.copy-btn {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.copy-btn:hover {
+  background: var(--primary);
+  color: white;
+}
+
+.flex-items-center {
+  display: flex;
+  align-items: center;
+}
+
+.mt-4 { margin-top: 1.5rem; }
+.pt-3 { padding-top: 1rem; }
+.mb-3 { margin-bottom: 1rem; }
+.border-top { border-top: 1px solid var(--border); }
 
 /* Highlight animation */
 tr.highlight {
