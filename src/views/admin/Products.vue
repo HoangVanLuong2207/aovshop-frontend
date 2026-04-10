@@ -241,34 +241,6 @@
               <input type="checkbox" v-model="form.active" /> Đang bán
             </label>
           </div>
-
-          <!-- Export API Section -->
-          <div v-if="editing" class="api-export-section mt-4 pt-3 border-top">
-            <div class="flex-items-center mb-2" style="gap: 8px;">
-              <h4 style="margin: 0; font-size: 1rem;">🚀 Tích hợp API cho Tool</h4>
-              <span class="badge badge-info" style="font-size: 0.75rem;">Developer</span>
-            </div>
-            <p class="text-muted small mb-3">Dùng Endpoint này để tự động đẩy tài khoản vào kho từ Tool Python.</p>
-            
-            <div class="form-group mb-3">
-              <label class="form-label small">URL Endpoint (POST):</label>
-              <div class="code-block-wrapper">
-                <code class="code-content">{{ getApiUrl(editing.id) }}</code>
-                <button type="button" class="copy-btn" @click="copyToClipboard(getApiUrl(editing.id))">Copy</button>
-              </div>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label small">Mẫu JSON Body:</label>
-              <div class="code-block-wrapper">
-                <pre class="code-content" style="margin: 0;">{{ getApiJson() }}</pre>
-                <button type="button" class="copy-btn" @click="copyToClipboard(getApiJson())">Copy</button>
-              </div>
-            </div>
-            <small class="text-info mt-2 d-block">
-              * Sử dụng <strong>Secret API Token</strong> trong Settings để xác thực.
-            </small>
-          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="closeModal">Hủy</button>

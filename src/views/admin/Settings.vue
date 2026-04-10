@@ -361,26 +361,38 @@ const loadSettings = async () => {
   try {
     const response = await api.get('/admin/settings')
     const data = response.data
-    // Convert notification_enabled from string to boolean
-    if (data.notification_enabled !== undefined) {
-      data.notification_enabled = data.notification_enabled === 'true' || data.notification_enabled === true
-    }
-    // Parse shop_banner JSON array
+    
+    // Create a clean object with only keys that exist in our local settings definition
+    const filteredData = {}
+    Object.keys(settings.value).forEach(key => {
+      if (data[key] !== undefined) {
+        // Handle special type conversions
+        if (key === 'notification_enabled') {
+          filteredData[key] = data[key] === 'true' || data[key] === true
+        } else {
+          filteredData[key] = data[key]
+        }
+      }
+    })
+
+    // Parse shop_banner JSON array separately
     if (data.shop_banner) {
       try {
         const parsed = JSON.parse(data.shop_banner)
         if (Array.isArray(parsed)) {
           bannerList.value = parsed.length > 0 ? parsed : ['']
-        } else {
-          bannerList.value = [data.shop_banner]
         }
       } catch {
         bannerList.value = [data.shop_banner]
       }
     }
-    settings.value = { ...settings.value, ...data }
+    
+    // Update local settings with filtered data from server
+    settings.value = { ...settings.value, ...filteredData }
+    console.log('Settings loaded:', settings.value)
   } catch (error) {
     console.error('Error loading settings:', error)
+    toast.error('Không thể tải cài đặt từ server')
   }
 }
 
@@ -388,22 +400,37 @@ const saveSettings = async () => {
   saving.value = true
   
   try {
-    // Convert boolean to string for backend
-    const dataToSend = { ...settings.value }
-    if (dataToSend.notification_enabled !== undefined) {
-      dataToSend.notification_enabled = dataToSend.notification_enabled ? 'true' : 'false'
-    }
-    // Serialize bannerList to JSON
+    // Only send keys that are in our settings ref definition
+    // This filters out junk like 'id', 'updatedAt', etc.
+    const dataToSend = {}
+    Object.keys(settings.value).forEach(key => {
+      let val = settings.value[key]
+      
+      // Convert boolean to string for backend persistence
+      if (key === 'notification_enabled') {
+        val = val ? 'true' : 'false'
+      }
+      
+      dataToSend[key] = val
+    })
+
+    // Special handling for banners
     const validBanners = bannerList.value.filter(b => b && b.trim())
-    dataToSend.shop_banner = validBanners.length > 0 ? JSON.stringify(validBanners) : ''
+    dataToSend.shop_banner = validBanners.length > 0 ? JSON.stringify(validBanners) : '[]'
     
-    await api.post('/admin/settings', dataToSend)
+    const response = await api.post('/admin/settings', dataToSend)
     
-    // Refresh settings store để cập nhật banner ngay lập tức
+    // Update the local state with what the server actually saved
+    if (response.data && response.data.saved) {
+        console.log('Saved keys:', response.data.saved)
+    }
+
+    // Refresh public settings store
     await settingsStore.refreshShopInfo()
     
     toast.success('Cài đặt đã được lưu thành công!')
   } catch (error) {
+    console.error('Save error:', error)
     toast.error('Lỗi khi lưu cài đặt: ' + (error.response?.data?.message || error.message))
   } finally {
     saving.value = false
