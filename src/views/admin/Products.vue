@@ -99,19 +99,29 @@
             <button class="btn btn-outline-danger mt-2 ml-2" @click="clearAccounts" :disabled="loadingAccounts">
               Xóa tất cả kho chưa bán
             </button>
+            <button class="btn btn-outline-info mt-2 ml-2" @click="exportAccounts" :disabled="loadingAccounts">
+              Xuất file .txt (chưa bán)
+            </button>
           </div>
 
           <div class="account-list">
             <div class="flex-between mb-2">
-              <h4>Danh sách tài khoản ({{ accounts.length }})</h4>
-              <div class="search-box">
-                <input 
-                  v-model="accountListSearch" 
-                  type="text" 
-                  class="form-input form-input-sm" 
-                  placeholder="Lọc tài khoản..." 
-                  style="width: 200px"
-                />
+              <h4>Danh sách tài khoản ({{ accountPagination.total }})</h4>
+              <div class="flex-center gap-2">
+                <select v-model="accountPagination.limit" class="form-input form-input-sm" style="width: 110px" @change="loadAccounts(1)">
+                  <option :value="20">20 / dòng</option>
+                  <option :value="50">50 / dòng</option>
+                  <option :value="100">100 / dòng</option>
+                </select>
+                <div class="search-box">
+                  <input 
+                    v-model="accountListSearch" 
+                    type="text" 
+                    class="form-input form-input-sm" 
+                    placeholder="Lọc trang này..." 
+                    style="width: 150px"
+                  />
+                </div>
               </div>
             </div>
             <div v-if="loadingAccounts" class="text-center py-3"><div class="spinner"></div></div>
@@ -142,6 +152,25 @@
                 </tr>
               </tbody>
             </table>
+
+            <!-- Account Pagination -->
+            <div v-if="accountPagination.totalPages > 1" class="flex-center gap-3 mt-3">
+              <button 
+                class="btn btn-secondary btn-sm" 
+                :disabled="accountPagination.page === 1" 
+                @click="loadAccounts(accountPagination.page - 1)"
+              >
+                &laquo; Trước
+              </button>
+              <span class="text-muted small">Trang {{ accountPagination.page }} / {{ accountPagination.totalPages }}</span>
+              <button 
+                class="btn btn-secondary btn-sm" 
+                :disabled="accountPagination.page === accountPagination.totalPages" 
+                @click="loadAccounts(accountPagination.page + 1)"
+              >
+                Sau &raquo;
+              </button>
+            </div>
           </div>
           </div>
         </div>
@@ -357,6 +386,13 @@ const addingAccounts = ref(false)
 const bulkAccounts = ref('')
 const accountListSearch = ref('')
 
+const accountPagination = reactive({
+  page: 1,
+  limit: 20,
+  total: 0,
+  totalPages: 0
+})
+
 const filteredAccounts = computed(() => {
   if (!accountListSearch.value.trim()) return accounts.value
   const searchLower = accountListSearch.value.toLowerCase()
@@ -377,16 +413,39 @@ const closeAccountModal = () => {
   accountListSearch.value = ''
 }
 
-const loadAccounts = async () => {
+const loadAccounts = async (page = 1) => {
   if (!selectedProduct.value) return
   loadingAccounts.value = true
+  accountPagination.page = page
   try {
-    const response = await adminApi.getAccounts(selectedProduct.value.id)
+    const response = await adminApi.getAccounts(selectedProduct.value.id, {
+      page: accountPagination.page,
+      limit: accountPagination.limit
+    })
     accounts.value = response.data.data
+    accountPagination.total = response.data.pagination.total
+    accountPagination.totalPages = response.data.pagination.totalPages
   } catch (error) {
     console.error('Failed to load accounts:', error)
   } finally {
     loadingAccounts.value = false
+  }
+}
+
+const exportAccounts = async () => {
+  if (!selectedProduct.value) return
+  try {
+    const response = await adminApi.exportUnsoldAccounts(selectedProduct.value.id)
+    const url = window.URL.createObjectURL(new Blob([response.data]))
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `unsold_accounts_${selectedProduct.value.id}.txt`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    toast.success('Xuất file thành công!')
+  } catch (error) {
+    toast.error('Xuất file thất bại')
   }
 }
 
@@ -398,8 +457,9 @@ const addAccounts = async () => {
     const response = await adminApi.addAccounts(selectedProduct.value.id, { accounts: bulkAccounts.value })
     bulkAccounts.value = ''
     
-    // Optimized: Update local state
-    accounts.value = response.data.accounts
+    // Refresh to page 1 to see new accounts
+    await loadAccounts(1)
+    
     const product = products.value.find(p => p.id === selectedProduct.value.id)
     if (product) product.stock = response.data.stock
     toast.success(`Thêm ${response.data.added || 'các'} tài khoản thành công!`)
@@ -417,8 +477,9 @@ const deleteAccount = async (account) => {
   try {
     const response = await adminApi.deleteAccount(selectedProduct.value.id, account.id)
     
-    // Optimized: Update local state
-    accounts.value = accounts.value.filter(a => a.id !== account.id)
+    // Refresh current page to keep pagination consistent
+    await loadAccounts(accountPagination.page)
+    
     const product = products.value.find(p => p.id === selectedProduct.value.id)
     if (product) product.stock = response.data.stock
     
@@ -433,8 +494,9 @@ const clearAccounts = async () => {
   try {
     const response = await adminApi.clearAccounts(selectedProduct.value.id)
     
-    // Optimized: Update local state
-    accounts.value = accounts.value.filter(a => a.status === 'sold')
+    // Refresh to page 1
+    await loadAccounts(1)
+    
     const product = products.value.find(p => p.id === selectedProduct.value.id)
     if (product) product.stock = response.data.stock
     

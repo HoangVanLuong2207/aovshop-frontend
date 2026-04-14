@@ -99,7 +99,8 @@ export const adminApi = {
   deleteProduct: (id) => api.delete(`/admin/products/${id}`),
 
   // Product Accounts (Stock management)
-  getAccounts: (productId) => api.get(`/admin/products/${productId}/accounts`),
+  getAccounts: (productId, params) => api.get(`/admin/products/${productId}/accounts`, { params }),
+  exportUnsoldAccounts: (productId) => api.get(`/admin/products/${productId}/accounts/export-unsold`, { responseType: 'blob' }),
   addAccounts: (productId, data) => api.post(`/admin/products/${productId}/accounts`, data),
   deleteAccount: (productId, accountId) => api.delete(`/admin/products/${productId}/accounts/${accountId}`),
   clearAccounts: (productId) => api.post(`/admin/products/${productId}/accounts/clear`),
