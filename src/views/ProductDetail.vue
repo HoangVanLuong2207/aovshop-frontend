@@ -228,7 +228,13 @@ onMounted(async () => {
 
 <style scoped>
 .product-detail-page {
-  padding: 2rem 0;
+  padding: 1rem 0;
+}
+
+@media (min-width: 768px) {
+  .product-detail-page {
+    padding: 2rem 0;
+  }
 }
 
 .product-detail {
@@ -378,8 +384,15 @@ onMounted(async () => {
 }
 
 .product-title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
+  line-height: 1.2;
+}
+
+@media (min-width: 768px) {
+  .product-title {
+    font-size: 2rem;
+  }
 }
 
 .product-pricing-lg {
@@ -389,9 +402,15 @@ onMounted(async () => {
 }
 
 .product-price-lg {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
   color: var(--secondary);
+}
+
+@media (min-width: 768px) {
+  .product-price-lg {
+    font-size: 2rem;
+  }
 }
 
 .product-price-old-lg {
@@ -455,9 +474,25 @@ onMounted(async () => {
 
 .product-actions {
   display: flex;
-  gap: 1rem;
+  gap: 0.75rem;
   align-items: center;
   margin-top: 1rem;
+}
+
+@media (max-width: 480px) {
+  .product-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  
+  .quantity-control {
+    justify-content: center;
+    margin-bottom: 0.5rem;
+  }
+  
+  .product-actions .btn {
+    width: 100%;
+  }
 }
 
 .quantity-control {

@@ -30,6 +30,7 @@
       <BackToTop />
       <FloatingChat />
       <NotificationFeed />
+      <FullscreenButton />
     </template>
   </div>
 </template>
@@ -42,6 +43,7 @@ import ToastContainer from './components/ToastContainer.vue'
 import BackToTop from './components/BackToTop.vue'
 import FloatingChat from './components/FloatingChat.vue'
 import NotificationFeed from './components/NotificationFeed.vue'
+import FullscreenButton from './components/FullscreenButton.vue'
 import Footer from './components/Footer.vue'
 import { useAuthStore } from './stores/auth'
 import { useSettingsStore } from './stores/settings'

@@ -24,11 +24,11 @@
         </thead>
         <tbody>
           <tr v-for="cat in categories" :key="cat.id">
-            <td>{{ cat.id }}</td>
-            <td>{{ cat.name }}</td>
-            <td class="text-muted">{{ cat.description || '-' }}</td>
-            <td>{{ cat.products_count }}</td>
-            <td>
+            <td data-label="ID">{{ cat.id }}</td>
+            <td data-label="Tên">{{ cat.name }}</td>
+            <td data-label="Mô tả" class="text-muted-desc">{{ cat.description || '-' }}</td>
+            <td data-label="Sản phẩm">{{ cat.products_count }}</td>
+            <td data-label="Trạng thái">
               <span :class="['badge', cat.active ? 'badge-success' : 'badge-danger']">
                 {{ cat.active ? 'Hoạt động' : 'Ẩn' }}
               </span>
@@ -224,23 +224,62 @@ onMounted(loadCategories)
   border: 1px solid var(--border);
 }
 
-/* Mobile responsive table - hide ID and Description columns */
+.text-muted-desc {
+  color: var(--text-muted);
+}
+
 @media (max-width: 768px) {
-  .table th:nth-child(1),
-  .table td:nth-child(1),
-  .table th:nth-child(3),
-  .table td:nth-child(3) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .page-header .btn {
+    width: 100%;
+  }
+
+  .table thead {
     display: none;
   }
-  
-  .table th, .table td {
-    padding: 0.5rem 0.25rem;
-    font-size: 0.85rem;
+
+  .table tbody tr {
+    display: block;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
   }
-  
-  .btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: right;
+  }
+
+  .table td:last-child {
+    border-bottom: none;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-top: 1rem !important;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-align: left;
+  }
+
+  .text-muted-desc {
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 }
 </style>

@@ -5,20 +5,22 @@
     </div>
 
     <div class="filters mb-3">
-      <select v-model="filter.status" class="form-input" style="width: auto" @change="loadOrders">
-        <option value="">Tất cả trạng thái</option>
-        <option value="pending">Chờ xử lý</option>
-        <option value="waiting">⏳ Chờ hàng về (Pre-order)</option>
-        <option value="processing">Đang xử lý</option>
-        <option value="delivered">✅ Đã giao hàng</option>
-        <option value="completed">Hoàn thành</option>
-        <option value="cancelled">Đã hủy</option>
-      </select>
-      <select v-model="filter.type" class="form-input" style="width: auto" @change="loadOrders">
-        <option value="">Tất cả loại</option>
-        <option value="instant">Thường</option>
-        <option value="preorder">Pre-order</option>
-      </select>
+      <div class="filter-group">
+        <select v-model="filter.status" class="form-input" @change="loadOrders">
+          <option value="">Tất cả trạng thái</option>
+          <option value="pending">Chờ xử lý</option>
+          <option value="waiting">⏳ Chờ hàng về (Pre-order)</option>
+          <option value="processing">Đang xử lý</option>
+          <option value="delivered">✅ Đã giao hàng</option>
+          <option value="completed">Hoàn thành</option>
+          <option value="cancelled">Đã hủy</option>
+        </select>
+        <select v-model="filter.type" class="form-input" @change="loadOrders">
+          <option value="">Tất cả loại</option>
+          <option value="instant">Thường</option>
+          <option value="preorder">Pre-order</option>
+        </select>
+      </div>
     </div>
 
     <div v-if="loading" class="loading"><div class="spinner"></div></div>
@@ -38,13 +40,13 @@
       </thead>
       <tbody>
         <tr v-for="order in filteredOrders" :key="order.id" :class="{ 'row-preorder': order.orderType === 'preorder' }">
-          <td>#{{ order.id }}</td>
-          <td>
+          <td data-label="ID">#{{ order.id }}</td>
+          <td data-label="Loại">
             <span v-if="order.orderType === 'preorder'" class="badge badge-preorder">📦 Pre-order</span>
             <span v-else class="badge badge-instant">⚡ Thường</span>
           </td>
-          <td>{{ order.user?.name }}<br><small class="text-muted">{{ order.user?.email }}</small></td>
-          <td>
+          <td data-label="Khách hàng">{{ order.user?.name }}<br><small class="text-muted">{{ order.user?.email }}</small></td>
+          <td data-label="Sản phẩm">
             <div v-for="item in order.items.slice(0, 2)" :key="item.id" class="order-item-row">
               {{ item.productName }} x{{ item.quantity }}
             </div>
@@ -52,8 +54,8 @@
               +{{ order.items.length - 2 }} sản phẩm khác
             </small>
           </td>
-          <td>{{ formatPrice(order.total) }}</td>
-          <td>
+          <td data-label="Tổng tiền">{{ formatPrice(order.total) }}</td>
+          <td data-label="Trạng thái">
             <select 
               v-model="order.status" 
               class="form-input" 
@@ -68,7 +70,7 @@
               <option value="cancelled">Đã hủy</option>
             </select>
           </td>
-          <td>{{ formatDate(order.createdAt) }}</td>
+          <td data-label="Ngày tạo">{{ formatDate(order.createdAt) }}</td>
           <td>
             <button class="btn btn-secondary btn-sm" @click="viewOrder(order)">Chi tiết</button>
             <button 
@@ -281,6 +283,22 @@ onMounted(loadOrders)
   gap: 1rem;
 }
 
+.filter-group {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .filter-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+  .filter-group .form-input {
+    width: 100% !important;
+  }
+}
+
 .ml-1 { margin-left: 0.4rem; }
 .ml-2 { margin-left: 0.5rem; }
 .mb-3 { margin-bottom: 1rem; }
@@ -387,6 +405,49 @@ onMounted(loadOrders)
   gap: 0.75rem;
 }
 
-.mt-3 { margin-top: 1rem; }
-.mb-2 { margin-bottom: 0.5rem; }
+@media (max-width: 768px) {
+  /* Biến bảng thành Card trên mobile */
+  .table thead {
+    display: none; /* Ẩn tiêu đề bảng */
+  }
+
+  .table tbody tr {
+    display: block;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    position: relative;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    padding: 0.75rem 0 !important;
+    text-align: right !important;
+  }
+
+  .table td:last-child {
+    border-bottom: none;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-top: 1rem !important;
+  }
+
+  /* Thêm nhãn cho dữ liệu */
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-align: left;
+    font-size: 0.85rem;
+  }
+
+  .order-item-row {
+    text-align: right;
+  }
+}
 </style>

@@ -6,18 +6,20 @@
     </div>
 
     <div class="filters mb-3">
-      <select v-model="filter.type" class="form-input" style="width: auto" @change="loadTransactions">
-        <option value="">Tất cả loại</option>
-        <option value="deposit">Nạp tiền</option>
-        <option value="purchase">Mua hàng</option>
-        <option value="refund">Hoàn tiền</option>
-      </select>
-      <select v-model="filter.status" class="form-input" style="width: auto" @change="loadTransactions">
-        <option value="">Tất cả trạng thái</option>
-        <option value="pending">Chờ xử lý</option>
-        <option value="completed">Hoàn thành</option>
-        <option value="failed">Thất bại</option>
-      </select>
+      <div class="filter-group">
+        <select v-model="filter.type" class="form-input" @change="loadTransactions">
+          <option value="">Tất cả loại</option>
+          <option value="deposit">Nạp tiền</option>
+          <option value="purchase">Mua hàng</option>
+          <option value="refund">Hoàn tiền</option>
+        </select>
+        <select v-model="filter.status" class="form-input" @change="loadTransactions">
+          <option value="">Tất cả trạng thái</option>
+          <option value="pending">Chờ xử lý</option>
+          <option value="completed">Hoàn thành</option>
+          <option value="failed">Thất bại</option>
+        </select>
+      </div>
     </div>
 
     <div v-if="loading" class="loading"><div class="spinner"></div></div>
@@ -38,21 +40,21 @@
       </thead>
       <tbody>
         <tr v-for="tx in transactions" :key="tx.id">
-          <td>{{ tx.id }}</td>
-          <td>{{ tx.user?.name }}<br><small class="text-muted">{{ tx.user?.email }}</small></td>
-          <td>
+          <td data-label="ID">{{ tx.id }}</td>
+          <td data-label="Người dùng">{{ tx.user?.name }}<br><small class="text-muted">{{ tx.user?.email }}</small></td>
+          <td data-label="Loại">
             <span :class="['badge', typeClass(tx.type)]">{{ typeText(tx.type) }}</span>
           </td>
-          <td :class="tx.type === 'deposit' ? 'text-success' : 'text-danger'">
+          <td data-label="Số tiền" :class="tx.type === 'deposit' ? 'text-success' : 'text-danger'">
             {{ tx.type === 'deposit' ? '+' : '' }}{{ formatPrice(tx.amount) }}
           </td>
-          <td>{{ formatPrice(tx.balanceBefore) }}</td>
-          <td>{{ formatPrice(tx.balanceAfter) }}</td>
-          <td>
+          <td data-label="Số dư trước">{{ formatPrice(tx.balanceBefore) }}</td>
+          <td data-label="Số dư sau">{{ formatPrice(tx.balanceAfter) }}</td>
+          <td data-label="Trạng thái">
             <span :class="['badge', statusClass(tx.status)]">{{ statusText(tx.status) }}</span>
           </td>
-          <td class="text-muted">{{ tx.description || '-' }}</td>
-          <td>{{ formatDate(tx.createdAt) }}</td>
+          <td data-label="Mô tả" class="text-muted-desc">{{ tx.description || '-' }}</td>
+          <td data-label="Ngày tạo">{{ formatDate(tx.createdAt) }}</td>
         </tr>
       </tbody>
     </table>
@@ -178,6 +180,75 @@ onMounted(loadTransactions)
 .filters {
   display: flex;
   gap: 1rem;
+}
+
+.filter-group {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+}
+
+.text-muted-desc {
+  color: var(--text-muted);
+}
+
+@media (max-width: 600px) {
+  .filter-group {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .page-header .btn {
+    width: 100%;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    display: block;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: right;
+  }
+
+  .table td:last-child {
+    border-bottom: none;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-align: left;
+  }
+
+  .text-muted-desc {
+    max-width: 60%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
 }
 
 .text-success { color: var(--success); }

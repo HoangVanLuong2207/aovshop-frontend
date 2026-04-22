@@ -1,89 +1,91 @@
 <template>
-<nav class="navbar">
-    <div class="container navbar-content">
-      <router-link to="/" class="navbar-logo">
-        <img v-if="settingsStore.shopLogo" :src="settingsStore.shopLogo" :alt="settingsStore.shopName" class="shop-logo-img" />
-        <span>{{ settingsStore.shopName }}</span>
-      </router-link>
-      
-      <!-- Desktop Nav -->
-      <ul class="navbar-nav desktop-nav">
-        <li><router-link to="/">Trang chủ</router-link></li>
-        <li class="nav-dropdown">
-          <button class="nav-dropdown-toggle" @click="showCategoryDropdown = !showCategoryDropdown">
-            Danh mục ▾
-          </button>
-          <div v-if="showCategoryDropdown" class="nav-dropdown-menu">
-            <router-link 
-              v-for="cat in categories" 
-              :key="cat.id" 
-              :to="`/products?category=${cat.id}`"
-              @click="showCategoryDropdown = false"
-            >
-              {{ cat.name }}
-            </router-link>
-            <router-link to="/categories" @click="showCategoryDropdown = false" class="view-all">
-              Xem tất cả →
-            </router-link>
-          </div>
-        </li>
-        <li><router-link to="/products">Sản phẩm</router-link></li>
-      </ul>
-
-      <!-- Desktop Actions -->
-      <div class="navbar-actions desktop-actions">
-        <!-- Theme Toggle -->
-        <button class="theme-toggle btn btn-secondary btn-sm" @click="themeStore.toggle" :title="themeStore.isDark ? 'Chuyển sang sáng' : 'Chuyển sang tối'">
-          {{ themeStore.isDark ? '☀️' : '🌙' }}
-        </button>
-
-        <template v-if="authStore.isAuthenticated">
-          <router-link to="/deposit" class="balance-badge"style="color:white">
-            {{ formatPrice(authStore.balance) }}
+  <div class="navbar-container">
+    <nav class="navbar" :class="{ 'navbar-scrolled': isScrolled }">
+        <div class="container navbar-content">
+          <router-link to="/" class="navbar-logo">
+            <img v-if="settingsStore.shopLogo" :src="settingsStore.shopLogo" :alt="settingsStore.shopName" class="shop-logo-img" />
+            <span>{{ settingsStore.shopName }}</span>
           </router-link>
           
-          <router-link to="/cart" class="cart-badge btn btn-secondary btn-sm">
-            🛒 Giỏ hàng
-            <span v-if="cartStore.itemCount" class="cart-count">{{ cartStore.itemCount }}</span>
-          </router-link>
+          <!-- Desktop Nav -->
+          <ul class="navbar-nav desktop-nav">
+            <li><router-link to="/">Trang chủ</router-link></li>
+            <li class="nav-dropdown">
+              <button class="nav-dropdown-toggle" @click="showCategoryDropdown = !showCategoryDropdown">
+                Danh mục ▾
+              </button>
+              <div v-if="showCategoryDropdown" class="nav-dropdown-menu">
+                <router-link 
+                  v-for="cat in categories" 
+                  :key="cat.id" 
+                  :to="`/products?category=${cat.id}`"
+                  @click="showCategoryDropdown = false"
+                >
+                  {{ cat.name }}
+                </router-link>
+                <router-link to="/categories" @click="showCategoryDropdown = false" class="view-all">
+                  Xem tất cả →
+                </router-link>
+              </div>
+            </li>
+            <li><router-link to="/products">Sản phẩm</router-link></li>
+          </ul>
 
-          <div class="dropdown">
-            <button class="btn btn-secondary btn-sm" @click="showDropdown = !showDropdown">
-              {{ authStore.user?.name }} ▾
+          <!-- Desktop Actions -->
+          <div class="navbar-actions desktop-actions">
+            <!-- Theme Toggle -->
+            <button class="theme-toggle btn btn-secondary btn-sm" @click="themeStore.toggle" :title="themeStore.isDark ? 'Chuyển sang sáng' : 'Chuyển sang tối'">
+              {{ themeStore.isDark ? '☀️' : '🌙' }}
             </button>
-            <div v-if="showDropdown" class="dropdown-menu">
-              <router-link to="/orders" @click="showDropdown = false">Đơn hàng</router-link>
-              <router-link to="/profile" @click="showDropdown = false">Tài khoản</router-link>
-              <router-link v-if="authStore.isAdmin" to="/admin" @click="showDropdown = false">
-                Admin
+
+            <template v-if="authStore.isAuthenticated">
+              <router-link to="/deposit" class="balance-badge"style="color:white">
+                {{ formatPrice(authStore.balance) }}
               </router-link>
-              <button @click="logout">Đăng xuất</button>
-            </div>
+              
+              <router-link to="/cart" class="cart-badge btn btn-secondary btn-sm">
+                🛒 Giỏ hàng
+                <span v-if="cartStore.itemCount" class="cart-count">{{ cartStore.itemCount }}</span>
+              </router-link>
+
+              <div class="dropdown">
+                <button class="btn btn-secondary btn-sm" @click="showDropdown = !showDropdown">
+                  {{ authStore.user?.name }} ▾
+                </button>
+                <div v-if="showDropdown" class="dropdown-menu">
+                  <router-link to="/orders" @click="showDropdown = false">Đơn hàng</router-link>
+                  <router-link to="/profile" @click="showDropdown = false">Tài khoản</router-link>
+                  <router-link v-if="authStore.isAdmin" to="/admin" @click="showDropdown = false">
+                    Admin
+                  </router-link>
+                  <button @click="logout">Đăng xuất</button>
+                </div>
+              </div>
+            </template>
+
+            <template v-else>
+              <router-link to="/login" class="btn btn-secondary btn-sm">Đăng nhập</router-link>
+              <router-link to="/register" class="btn btn-primary btn-sm">Đăng ký</router-link>
+            </template>
           </div>
-        </template>
 
-        <template v-else>
-          <router-link to="/login" class="btn btn-secondary btn-sm">Đăng nhập</router-link>
-          <router-link to="/register" class="btn btn-primary btn-sm">Đăng ký</router-link>
-        </template>
-      </div>
+          <!-- Mobile Hamburger Button -->
+          <button class="hamburger-btn" @click="toggleMobileMenu">
+            <span :class="{ open: isMobileMenuOpen }"></span>
+            <span :class="{ open: isMobileMenuOpen }"></span>
+            <span :class="{ open: isMobileMenuOpen }"></span>
+          </button>
+        </div>
+    </nav>
 
-      <!-- Mobile Hamburger Button -->
-      <button class="hamburger-btn" @click="toggleMobileMenu">
-        <span :class="{ open: isMobileMenuOpen }"></span>
-        <span :class="{ open: isMobileMenuOpen }"></span>
-        <span :class="{ open: isMobileMenuOpen }"></span>
-      </button>
-    </div>
-
-    <!-- Mobile Menu Overlay -->
+    <!-- Mobile Menu Overlay - Chuyển ra ngoài nav -->
     <div 
       class="mobile-overlay" 
       :class="{ active: isMobileMenuOpen }" 
       @click="closeMobileMenu"
     ></div>
 
-    <!-- Mobile Menu -->
+    <!-- Mobile Menu - Chuyển ra ngoài nav -->
     <div class="mobile-menu" :class="{ open: isMobileMenuOpen }">
       <div class="mobile-menu-header">
         <span class="mobile-menu-title">Menu</span>
@@ -159,7 +161,7 @@
         </template>
       </div>
     </div>
-  </nav>
+  </div>
 </template>
 
 <script setup>
@@ -232,7 +234,7 @@ onUnmounted(() => {
   left: 0;
   right: 0;
   width: 100%;
-  z-index: 100;
+  z-index: 1000; /* Nâng cao mặc định */
   transition: all 0.3s ease;
 }
 
@@ -423,7 +425,7 @@ onUnmounted(() => {
   right: 0;
   bottom: 0;
   background: rgba(0, 0, 0, 0.6);
-  z-index: 998;
+  z-index: 2000; /* Cao hơn các nút nổi */
   opacity: 0;
   transition: opacity 0.3s;
   pointer-events: none;
@@ -444,7 +446,7 @@ onUnmounted(() => {
   height: 100vh;
   background: var(--bg-secondary);
   border-left: 1px solid var(--border);
-  z-index: 999;
+  z-index: 2001; /* Cao nhất để đè lên mọi thứ */
   transition: right 0.3s ease;
   overflow-y: auto;
 }

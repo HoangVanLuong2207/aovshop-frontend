@@ -6,13 +6,12 @@
     </div>
 
     <div class="card">
-      <div class="card-header">
+      <div class="card-header search-container">
         <input 
           v-model="search" 
           type="text" 
           class="form-input" 
-          placeholder="Tìm kiếm theo tên hoặc email..."
-          style="max-width: 300px"
+          placeholder="Tìm kiếm..."
         />
       </div>
       <div class="card-body">
@@ -32,16 +31,16 @@
           </thead>
           <tbody>
             <tr v-for="user in filteredUsers" :key="user.id">
-              <td><strong>{{ user.id }}</strong></td>
-              <td>{{ user.name }}</td>
-              <td>{{ user.email }}</td>
-              <td>
+              <td data-label="ID"><strong>{{ user.id }}</strong></td>
+              <td data-label="Tên">{{ user.name }}</td>
+              <td data-label="Email">{{ user.email }}</td>
+              <td data-label="Role">
                 <span :class="['badge', user.role === 'admin' ? 'badge-danger' : 'badge-secondary']">
                   {{ user.role }}
                 </span>
               </td>
-              <td class="text-success">{{ formatPrice(user.balance) }}</td>
-              <td>{{ formatDate(user.createdAt) }}</td>
+              <td data-label="Số dư" class="text-success-val">{{ formatPrice(user.balance) }}</td>
+              <td data-label="Ngày tạo">{{ formatDate(user.createdAt) }}</td>
               <td>
                 <button class="btn btn-sm btn-secondary" @click="editUser(user)">✏️</button>
                 <button 
@@ -284,12 +283,67 @@ onMounted(loadUsers)
   font-weight: 500;
 }
 
-.text-success {
+.text-success-val {
   color: var(--success);
 }
 
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.85rem;
+.search-container {
+  padding: 1rem;
+}
+
+@media (max-width: 480px) {
+  .search-container .form-input {
+    max-width: 100% !important;
+  }
+}
+
+@media (max-width: 768px) {
+  .admin-users {
+    padding: 0.75rem;
+  }
+
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  /* Table to Cards */
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    display: block;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    margin-bottom: 1rem;
+    background: var(--bg-secondary);
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.6rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: right;
+  }
+
+  .table td:last-child {
+    border-bottom: none;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-top: 1rem !important;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-align: left;
+  }
 }
 </style>

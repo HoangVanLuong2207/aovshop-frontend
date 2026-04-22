@@ -95,6 +95,15 @@ const routes = [
 const router = createRouter({
     history: createWebHistory(),
     routes,
+    scrollBehavior(to, from, savedPosition) {
+        // Nếu có vị trí đã lưu (khi bấm Back/Forward), quay lại vị trí đó
+        if (savedPosition) {
+            return savedPosition
+        } else {
+            // Còn không thì luôn cuộn lên đầu trang
+            return { top: 0, behavior: 'smooth' }
+        }
+    }
 })
 
 // Navigation guards

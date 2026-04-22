@@ -41,13 +41,22 @@
                   <span>{{ quantity }}</span>
                   <button @click="incrementQuantity" :disabled="!product.is_preorder && quantity >= product.stock">+</button>
                 </div>
-                <button 
-                  class="btn btn-primary add-to-cart-btn" 
-                  @click="addToCart"
-                  :disabled="!product.is_preorder && product.stock === 0"
-                >
-                  {{ product.is_preorder ? '📦 Đặt trước' : '🛒 Thêm vào giỏ' }}
-                </button>
+                <div class="main-actions">
+                  <button 
+                    class="btn btn-secondary add-to-cart-btn" 
+                    @click="addToCart"
+                    :disabled="!product.is_preorder && product.stock === 0"
+                  >
+                    🛒 Thêm giỏ
+                  </button>
+                  <button 
+                    class="btn btn-primary buy-now-btn" 
+                    @click="buyNow"
+                    :disabled="!product.is_preorder && product.stock === 0"
+                  >
+                    {{ product.is_preorder ? '📦 Đặt trước' : '⚡ Mua ngay' }}
+                  </button>
+                </div>
               </div>
               
               <router-link :to="`/products/${product.id}`" class="view-detail-link" @click="$emit('close')">
@@ -63,6 +72,7 @@
 
 <script setup>
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { getImageUrl } from '../utils/image'
 import { useCartStore } from '../stores/cart'
 import { useToast } from '../composables/useToast'
@@ -77,6 +87,7 @@ const props = defineProps({
 
 const emit = defineEmits(['close'])
 
+const router = useRouter()
 const cartStore = useCartStore()
 const { toast } = useToast()
 const quantity = ref(1)
@@ -124,7 +135,12 @@ const decrementQuantity = () => {
 const addToCart = () => {
   cartStore.addItem(props.product, quantity.value)
   toast.success('Đã thêm vào giỏ hàng!')
+}
+
+const buyNow = () => {
+  cartStore.addItem(props.product, quantity.value)
   emit('close')
+  router.push('/checkout')
 }
 </script>
 
@@ -147,7 +163,9 @@ const addToCart = () => {
   border-radius: 16px;
   max-width: 900px;
   width: 100%;
-  max-height: 90vh;
+  max-height: 95vh; /* Tăng nhẹ để tận dụng không gian mobile */
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
 }
@@ -182,6 +200,7 @@ const addToCart = () => {
   position: relative;
   height: 100%;
   min-height: 400px;
+  background: var(--bg-tertiary);
 }
 
 .modal-image img {
@@ -208,7 +227,7 @@ const addToCart = () => {
   flex-direction: column;
   gap: 1rem;
   overflow-y: auto;
-  max-height: 90vh;
+  flex: 1; /* Để phần info tự co giãn và scroll nếu cần */
 }
 
 .product-category {
@@ -274,53 +293,32 @@ const addToCart = () => {
   font-size: 1rem;
 }
 
-.action-buttons {
+.main-actions {
+  flex: 1;
   display: flex;
-  gap: 1rem;
-  align-items: center;
-  margin-top: auto;
-}
-
-.quantity-selector {
-  display: flex;
-  align-items: center;
   gap: 0.75rem;
-  background: var(--bg-tertiary);
-  border-radius: 8px;
-  padding: 0.5rem;
 }
 
-.quantity-selector button {
-  width: 36px;
-  height: 36px;
-  border: none;
-  background: var(--bg-secondary);
-  color: var(--text);
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.2s;
-}
-
-.quantity-selector button:hover:not(:disabled) {
-  background: var(--primary);
-}
-
-.quantity-selector button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.quantity-selector span {
-  min-width: 40px;
-  text-align: center;
+.add-to-cart-btn,
+.buy-now-btn {
+  flex: 1;
+  padding: 0.875rem;
+  font-size: 0.95rem;
   font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
 }
 
 .add-to-cart-btn {
-  flex: 1;
-  padding: 1rem;
-  font-size: 1rem;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.add-to-cart-btn:hover:not(:disabled) {
+  background: var(--border);
 }
 
 .view-detail-link {
@@ -357,33 +355,70 @@ const addToCart = () => {
 
 /* Responsive */
 @media (max-width: 768px) {
+  .quick-view-modal {
+    max-height: 92vh;
+  }
+
   .modal-content {
     grid-template-columns: 1fr;
+    height: 100%;
+    overflow-y: auto;
   }
   
   .modal-image {
-    min-height: 250px;
+    min-height: 180px; /* Thu nhỏ đáng kể ảnh trên mobile */
+    height: 180px;
   }
   
   .modal-info {
-    padding: 1.5rem;
+    padding: 1.25rem;
+    gap: 0.75rem;
+    overflow-y: visible; /* Để container cha lo việc scroll */
   }
   
   .product-name {
-    font-size: 1.25rem;
+    font-size: 1.2rem;
+  }
+
+  .current-price {
+    font-size: 1.4rem;
   }
   
   .action-buttons {
     flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+    margin-top: 0.5rem;
+  }
+
+  .main-actions {
+    width: 100%;
   }
   
   .quantity-selector {
-    width: 100%;
+    padding: 0.25rem;
     justify-content: center;
   }
+
+  .quantity-selector button {
+    width: 32px;
+    height: 32px;
+  }
   
-  .add-to-cart-btn {
-    width: 100%;
+  .add-to-cart-btn,
+  .buy-now-btn {
+    padding: 0.875rem;
+    font-size: 0.9rem;
+  }
+}
+
+@media (max-width: 400px) {
+  .modal-image {
+    height: 150px;
+    min-height: 150px;
+  }
+  .action-buttons {
+    flex-direction: column;
   }
 }
 </style>

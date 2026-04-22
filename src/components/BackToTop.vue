@@ -104,7 +104,7 @@ onUnmounted(() => {
 
 @media (max-width: 768px) {
   .back-to-top-btn {
-    bottom: 80px;
+    bottom: 77px;
     right: 16px;
     width: 45px;
     height: 45px;

@@ -224,7 +224,13 @@ const placeOrder = async () => {
 
 <style scoped>
 .checkout-page {
-  padding: 2rem 0;
+  padding: 1rem 0;
+}
+
+@media (min-width: 768px) {
+  .checkout-page {
+    padding: 2rem 0;
+  }
 }
 
 .checkout-content {
@@ -236,6 +242,12 @@ const placeOrder = async () => {
 @media (max-width: 900px) {
   .checkout-content {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+  
+  .checkout-summary {
+    position: static; /* Bỏ sticky trên mobile để tránh lỗi layout */
+    order: 2; /* Đẩy summary xuống dưới cùng nếu cần */
   }
 }
 
@@ -260,10 +272,27 @@ const placeOrder = async () => {
 }
 
 .checkout-item img {
-  width: 60px;
-  height: 60px;
+  width: 70px;
+  height: 70px;
   object-fit: cover;
   border-radius: var(--radius-sm);
+}
+
+@media (max-width: 480px) {
+  .checkout-item {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+  .checkout-item img {
+    width: 60px;
+    height: 60px;
+  }
+  .checkout-item .item-info h4 {
+    font-size: 0.85rem;
+  }
+  .checkout-item .item-total {
+    font-size: 0.9rem;
+  }
 }
 
 .checkout-item .item-info {
