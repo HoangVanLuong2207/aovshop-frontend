@@ -182,7 +182,7 @@ const loadPromotions = async () => {
     const response = await adminApi.getPromotions({ per_page: 50 })
     promotions.value = (response.data.data || []).map(promo => ({
       ...promo,
-      applies_to_product_ids: parseProductIds(promo.applies_to_product_ids ?? promo.appliesToProductIds),
+      applies_to_product_ids: parseProductIds(promo.applies_to_product_ids),
     }))
   } catch (error) {
     console.error('Failed to load promotions:', error)
@@ -218,7 +218,7 @@ const loadProducts = async () => {
 }
 
 const getAppliedProductsText = (promo) => {
-  const ids = parseProductIds(promo.applies_to_product_ids ?? promo.appliesToProductIds)
+  const ids = parseProductIds(promo.applies_to_product_ids)
   if (ids.length === 0) return 'Tất cả sản phẩm'
   if (!products.value.length) return `${ids.length} sản phẩm`
   return ids
@@ -238,7 +238,7 @@ const openModal = (promo = null) => {
       min_order: promo.min_order || 0,
       max_discount: promo.max_discount,
       usage_limit: promo.usage_limit,
-      applies_to_product_ids: parseProductIds(promo.applies_to_product_ids ?? promo.appliesToProductIds),
+      applies_to_product_ids: parseProductIds(promo.applies_to_product_ids),
       start_date: promo.start_date?.slice(0, 16),
       end_date: promo.end_date?.slice(0, 16),
       active: promo.active,
@@ -293,10 +293,7 @@ const savePromotion = async () => {
     
     if (editing.value) {
       await adminApi.updatePromotion(editing.value.id, data)
-      const index = promotions.value.findIndex(p => p.id === editing.value.id)
-      if (index !== -1) {
-        Object.assign(promotions.value[index], data)
-      }
+      await loadPromotions()
       toast.success('Cập nhật khuyến mãi thành công!')
     } else {
       await adminApi.createPromotion(data)
