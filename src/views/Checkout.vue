@@ -71,7 +71,7 @@
               :class="{ 'preorder-input': hasPreorderItems, 'input-error': contactInfoError }"
               rows="4" 
               :placeholder="hasPreorderItems 
-                ? 'Ví dụ: ID game: 12345678 | Server: S1 | Tên nhân vật: AnhHung | SĐT: 09xx...'
+                ? 'Ví dụ: Số điện thoại zalo, link fb,... mình liên lạc lại để thông báo khi thể lệ ra mắt'
                 : 'Số điện thoại, tên, hoặc thông tin liên lạc khác'"
               required
             ></textarea>
