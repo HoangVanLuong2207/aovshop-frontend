@@ -51,7 +51,8 @@
       <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 2px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
       <span class="sale-text">FLASH SALE</span>
     </div>
-    <div v-if="isNew" class="new-badge">NEW</div>
+    <div v-if="product.is_preorder" class="preorder-badge">⏳ ĐẶT TRƯỚC</div>
+    <div v-else-if="isNew" class="new-badge">NEW</div>
     
     <!-- Quick View Modal -->
     <QuickViewModal 
@@ -103,12 +104,14 @@ const stockPercent = computed(() => {
 })
 
 const stockClass = computed(() => ({
-  'text-success': props.product.stock > 10,
-  'text-warning': props.product.stock > 0 && props.product.stock <= 10,
-  'text-danger': props.product.stock === 0,
+  'text-preorder': props.product.is_preorder,
+  'text-success': !props.product.is_preorder && props.product.stock > 10,
+  'text-warning': !props.product.is_preorder && props.product.stock > 0 && props.product.stock <= 10,
+  'text-danger': !props.product.is_preorder && props.product.stock === 0,
 }))
 
 const stockText = computed(() => {
+  if (props.product.is_preorder) return 'Đặt trước'
   if (props.product.stock === 0) return 'Hết hàng'
   if (props.product.stock <= 10) return `Còn ${props.product.stock}`
   return 'Còn hàng'
@@ -413,6 +416,24 @@ onUnmounted(() => {
 .text-success { color: var(--success); }
 .text-warning { color: var(--warning); }
 .text-danger { color: var(--danger); }
+.text-preorder { color: #d97706; font-weight: 600; }
+
+.preorder-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+  color: white;
+  padding: 0.3rem 0.8rem;
+  border-radius: 9999px;
+  font-size: 0.65rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
+  z-index: 2;
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
 
 /* Responsive */
 @media (max-width: 640px) {

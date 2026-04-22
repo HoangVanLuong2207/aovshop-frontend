@@ -97,11 +97,11 @@
           <div class="modal-body">
             <p><strong>Khách hàng:</strong> {{ selectedOrder.user?.name }} ({{ selectedOrder.user?.email }})</p>
             <p><strong>Ngày tạo:</strong> {{ formatDate(selectedOrder.createdAt) }}</p>
-            <p v-if="selectedOrder.note"><strong>Ghi chú:</strong> {{ selectedOrder.note }}</p>
+            <p v-if="selectedOrder.note"><strong>📞 Thông tin liên hệ:</strong> {{ selectedOrder.note }}</p>
 
             <!-- Customer note for pre-orders -->
             <div v-if="selectedOrder.customerNote" class="customer-note-admin">
-              <div class="cnote-label">📝 Thông tin user đặt hàng:</div>
+              <div class="cnote-label">📝 Thông tin liên hệ / yêu cầu đặt hàng:</div>
               <pre class="cnote-text">{{ selectedOrder.customerNote }}</pre>
             </div>
 
