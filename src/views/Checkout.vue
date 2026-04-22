@@ -172,6 +172,7 @@ const applyPromo = async () => {
     const response = await orderApi.applyPromotion({
       code: promoCode.value,
       subtotal: cartStore.subtotal,
+      items: cartStore.items,
     })
     appliedPromo.value = response.data.promotion
     discount.value = response.data.discount

@@ -117,6 +117,15 @@
               <input v-model.number="form.usage_limit" type="number" class="form-input" min="1" placeholder="Để trống = không giới hạn" />
             </div>
             <div class="form-group">
+              <label class="form-label">Áp dụng cho sản phẩm cụ thể</label>
+              <select v-model="form.applies_to_product_ids" class="form-input" multiple size="6">
+                <option v-for="product in products" :key="product.id" :value="product.id">
+                  #{{ product.id }} - {{ product.name }}
+                </option>
+              </select>
+              <small class="text-muted">Để trống = áp dụng toàn bộ sản phẩm</small>
+            </div>
+            <div class="form-group">
               <label class="form-label">
                 <input type="checkbox" v-model="form.active" /> Kích hoạt
               </label>
@@ -146,6 +155,7 @@ const saving = ref(false)
 const showModal = ref(false)
 const editing = ref(null)
 const promotions = ref([])
+const products = ref([])
 
 const form = reactive({
   code: '',
@@ -155,6 +165,7 @@ const form = reactive({
   min_order: 0,
   max_discount: null,
   usage_limit: null,
+  applies_to_product_ids: [],
   start_date: '',
   end_date: '',
   active: true,
@@ -175,6 +186,32 @@ const loadPromotions = async () => {
   }
 }
 
+const parseProductIds = (raw) => {
+  if (!raw) return []
+  if (Array.isArray(raw)) return raw.map(id => Number(id)).filter(id => !Number.isNaN(id))
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw)
+      if (Array.isArray(parsed)) {
+        return parsed.map(id => Number(id)).filter(id => !Number.isNaN(id))
+      }
+    } catch {
+      return []
+    }
+  }
+  return []
+}
+
+const loadProducts = async () => {
+  try {
+    const response = await adminApi.getProducts({ per_page: 1000 })
+    products.value = response.data?.data || []
+  } catch (error) {
+    console.error('Failed to load products:', error)
+    products.value = []
+  }
+}
+
 const openModal = (promo = null) => {
   editing.value = promo
   if (promo) {
@@ -186,6 +223,7 @@ const openModal = (promo = null) => {
       min_order: promo.min_order || 0,
       max_discount: promo.max_discount,
       usage_limit: promo.usage_limit,
+      applies_to_product_ids: parseProductIds(promo.applies_to_product_ids),
       start_date: promo.start_date?.slice(0, 16),
       end_date: promo.end_date?.slice(0, 16),
       active: promo.active,
@@ -201,6 +239,7 @@ const openModal = (promo = null) => {
       min_order: 0,
       max_discount: null,
       usage_limit: null,
+      applies_to_product_ids: [],
       start_date: now.toISOString().slice(0, 16),
       end_date: nextMonth.toISOString().slice(0, 16),
       active: true,
@@ -230,7 +269,12 @@ const savePromotion = async () => {
   
   saving.value = true
   try {
-    const data = { ...form }
+    const data = {
+      ...form,
+      applies_to_product_ids: Array.isArray(form.applies_to_product_ids)
+        ? form.applies_to_product_ids.map(id => Number(id)).filter(id => !Number.isNaN(id))
+        : [],
+    }
     
     if (editing.value) {
       await adminApi.updatePromotion(editing.value.id, data)
@@ -275,7 +319,9 @@ const deletePromotion = async (promo) => {
   }
 }
 
-onMounted(loadPromotions)
+onMounted(async () => {
+  await Promise.all([loadPromotions(), loadProducts()])
+})
 </script>
 
 <style scoped>
