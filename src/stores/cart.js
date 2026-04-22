@@ -25,17 +25,22 @@ export const useCartStore = defineStore('cart', {
             if (existingItem) {
                 const newQuantity = existingItem.quantity + quantity
                 // Pre-order: no stock limit; instant: limit by available stock
-                existingItem.quantity = isPreorder ? newQuantity : Math.min(newQuantity, availableStock)
-                existingItem.stock = availableStock
+                const safeStock = availableStock > 0 ? availableStock : (existingItem.stock || existingItem.quantity || 1)
+                existingItem.quantity = isPreorder ? newQuantity : Math.min(Math.max(1, newQuantity), safeStock)
+                if (!isPreorder) {
+                    existingItem.stock = safeStock
+                }
+                existingItem.is_preorder = isPreorder
             } else {
+                const safeInitialQuantity = isPreorder ? Math.max(1, quantity) : Math.max(1, Math.min(quantity, availableStock || 1))
                 this.items.push({
                     id: product.id,
                     name: product.name,
                     price: product.price,
                     sale_price: product.sale_price,
                     image: product.image,
-                    quantity: isPreorder ? quantity : Math.min(quantity, availableStock),
-                    stock: availableStock,
+                    quantity: safeInitialQuantity,
+                    stock: isPreorder ? 0 : (availableStock || 1),
                     is_preorder: isPreorder,
                 })
             }
@@ -46,9 +51,17 @@ export const useCartStore = defineStore('cart', {
         updateQuantity(productId, quantity, stock) {
             const item = this.items.find(item => item.id === productId)
             if (item) {
-                const availableStock = stock !== undefined ? stock : (item.stock || 0)
-                item.quantity = Math.min(Math.max(1, quantity), availableStock)
-                if (stock !== undefined) item.stock = stock
+                if (item.is_preorder) {
+                    item.quantity = Math.max(1, quantity)
+                    this.saveToStorage()
+                    return
+                }
+                const requestedStock = stock !== undefined ? Number(stock) : Number(item.stock)
+                const safeStock = Number.isFinite(requestedStock) && requestedStock > 0
+                    ? requestedStock
+                    : Math.max(1, Number(item.quantity) || 1)
+                item.quantity = Math.min(Math.max(1, quantity), safeStock)
+                item.stock = safeStock
                 this.saveToStorage()
             }
         },

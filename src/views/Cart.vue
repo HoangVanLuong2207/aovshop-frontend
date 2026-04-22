@@ -29,8 +29,8 @@
               <span>{{ item.quantity }}</span>
               <button 
                 @click="updateQuantity(item.id, item.quantity + 1, item.stock)"
-                :disabled="item.quantity >= item.stock"
-                :title="item.quantity >= item.stock ? 'Đã đạt giới hạn kho' : ''"
+                :disabled="!item.is_preorder && item.quantity >= item.stock"
+                :title="!item.is_preorder && item.quantity >= item.stock ? 'Đã đạt giới hạn kho' : ''"
               >+</button>
             </div>
             <div class="cart-item-total">

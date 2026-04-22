@@ -22,6 +22,15 @@
             <div class="item-info">
               <h4>{{ item.name }}</h4>
               <p>{{ formatPrice(item.sale_price || item.price) }} × {{ item.quantity }}</p>
+              <div class="item-qty-control">
+                <button @click="updateQuantity(item.id, item.quantity - 1, item.stock)">-</button>
+                <span>{{ item.quantity }}</span>
+                <button
+                  @click="updateQuantity(item.id, item.quantity + 1, item.stock)"
+                  :disabled="!item.is_preorder && item.quantity >= item.stock"
+                  :title="!item.is_preorder && item.quantity >= item.stock ? 'Đã đạt giới hạn kho' : ''"
+                >+</button>
+              </div>
             </div>
             <div class="item-total">
               {{ formatPrice((item.sale_price || item.price) * item.quantity) }}
@@ -169,10 +178,17 @@ const applyPromo = async () => {
   promoError.value = ''
   
   try {
+    const promoItems = cartStore.items.map(item => ({
+      product_id: item.id,
+      quantity: item.quantity,
+      price: item.price,
+      sale_price: item.sale_price,
+    }))
+
     const response = await orderApi.applyPromotion({
       code: promoCode.value,
       subtotal: cartStore.subtotal,
-      items: cartStore.items,
+      items: promoItems,
     })
     appliedPromo.value = response.data.promotion
     discount.value = response.data.discount
@@ -188,6 +204,17 @@ const removePromo = () => {
   discount.value = 0
   promoCode.value = ''
   promoError.value = ''
+}
+
+const updateQuantity = (productId, quantity, stock) => {
+  if (quantity < 1) {
+    cartStore.removeItem(productId)
+    if (cartStore.isEmpty) {
+      removePromo()
+    }
+    return
+  }
+  cartStore.updateQuantity(productId, quantity, stock)
 }
 
 const placeOrder = async () => {
@@ -308,6 +335,35 @@ const placeOrder = async () => {
 .checkout-item .item-info p {
   font-size: 0.85rem;
   color: var(--text-secondary);
+}
+
+.item-qty-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  background: var(--bg-tertiary);
+  border-radius: var(--radius-sm);
+  padding: 0.25rem;
+}
+
+.item-qty-control button {
+  width: 30px;
+  height: 30px;
+  border: none;
+  background: none;
+  color: var(--text);
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+}
+
+.item-qty-control button:hover {
+  background: var(--bg-secondary);
+}
+
+.item-qty-control span {
+  min-width: 30px;
+  text-align: center;
 }
 
 .checkout-item .item-total {
