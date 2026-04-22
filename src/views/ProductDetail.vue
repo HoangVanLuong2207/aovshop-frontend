@@ -57,7 +57,7 @@
 
           <div class="product-meta-lg">
             <div class="product-stock-status">
-              <span class="stock-dot" :class="product?.stock > 0 ? 'bg-success' : 'bg-danger'"></span>
+              <span class="stock-dot" :class="isPreorder ? 'bg-preorder' : (product?.stock > 0 ? 'bg-success' : 'bg-danger')"></span>
               <span :class="stockClass">{{ stockText }}</span>
             </div>
             <div class="product-sold-lg">
@@ -72,13 +72,23 @@
           </div>
 
           <div class="product-actions">
+            <!-- Quantity control: no max limit for preorder, stock-limited for instant -->
             <div class="quantity-control">
               <button @click="quantity = Math.max(1, quantity - 1)">-</button>
-              <input type="number" v-model.number="quantity" min="1" :max="product.stock" />
-              <button @click="quantity = Math.min(product.stock, quantity + 1)">+</button>
+              <input
+                type="number"
+                v-model.number="quantity"
+                min="1"
+                :max="isPreorder ? 9999 : product.stock"
+              />
+              <button @click="isPreorder ? quantity++ : quantity = Math.min(product.stock, quantity + 1)">+</button>
             </div>
-            
-            <button 
+
+            <div v-if="isPreorder" class="preorder-badge-inline">
+              ⏳ Đặt trước
+            </div>
+
+            <button v-if="!isPreorder"
               class="btn btn-secondary btn-lg" 
               @click="addToCart"
               :disabled="product.stock === 0"
@@ -90,10 +100,10 @@
             <button 
               class="btn btn-primary btn-lg" 
               @click="buyNow"
-              :disabled="product.stock === 0"
+              :disabled="!isPreorder && product.stock === 0"
             >
               <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
-              Mua ngay
+              {{ isPreorder ? '📦 Đặt trước ngay' : 'Mua ngay' }}
             </button>
           </div>
         </div>
@@ -165,11 +175,15 @@ const isOnSale = computed(() => product.value?.sale_price && product.value.sale_
 const stockClass = computed(() => ({
   'text-success': product.value?.stock > 10,
   'text-warning': product.value?.stock > 0 && product.value?.stock <= 10,
-  'text-danger': product.value?.stock === 0,
+  'text-danger': !product.value?.is_preorder && product.value?.stock === 0,
+  'text-preorder': product.value?.is_preorder,
 }))
+
+const isPreorder = computed(() => product.value?.is_preorder || false)
 
 const stockText = computed(() => {
   if (!product.value) return ''
+  if (product.value.is_preorder) return 'Sản phẩm đặt trước'
   if (product.value.stock === 0) return 'Hết hàng'
   if (product.value.stock <= 10) return `Số lượng có hạn: ${product.value.stock}`
   return `Còn hàng (${product.value.stock})`
@@ -481,4 +495,19 @@ onMounted(async () => {
 .text-success { color: var(--success); }
 .text-warning { color: var(--warning); }
 .text-danger { color: var(--danger); }
+.text-preorder { color: #d97706; font-weight: 600; }
+.bg-preorder { background-color: #f59e0b; }
+
+.preorder-badge-inline {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.05));
+  border: 1.5px solid rgba(245, 158, 11, 0.5);
+  color: #d97706;
+  font-weight: 600;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-sm);
+}
 </style>

@@ -54,6 +54,7 @@
         <tr>
           <th>ID</th>
           <th>Tên</th>
+          <th>Loại</th>
           <th>Danh mục</th>
           <th>Giá</th>
           <th>Giá KM</th>
@@ -65,9 +66,13 @@
         <tr v-for="product in activeProducts" :key="product.id" :data-product-id="product.id">
           <td>{{ product.id }}</td>
           <td>{{ product.name }}</td>
+          <td>
+            <span v-if="product.isPreorder" class="badge badge-preorder-sm">📦 Pre-order</span>
+            <span v-else class="badge badge-instant-sm">⚡ Thường</span>
+          </td>
           <td>{{ product.category?.name }}</td>
           <td>{{ formatPrice(product.price) }}</td>
-          <td>{{ product.sale_price ? formatPrice(product.sale_price) : '-' }}</td>
+          <td>{{ (product.sale_price !== undefined && product.sale_price !== null) ? formatPrice(product.sale_price) : (product.salePrice ? formatPrice(product.salePrice) : '-') }}</td>
           <td>{{ product.stock }}</td>
           <td>
             <button class="btn btn-secondary btn-sm" @click="openModal(product)">Sửa</button>
@@ -100,7 +105,13 @@
               Xóa tất cả kho chưa bán
             </button>
             <button class="btn btn-outline-info mt-2 ml-2" @click="exportAccounts" :disabled="loadingAccounts">
-              Xuất file .txt (chưa bán)
+              Xuất file .txt (tất cả kho)
+            </button>
+            <button class="btn btn-outline-success mt-2 ml-2" @click="exportSelectedExcel" :disabled="selectedAccountIds.length === 0">
+              Xuất Excel (đã chọn: {{ selectedAccountIds.length }})
+            </button>
+            <button class="btn btn-danger mt-2 ml-2" @click="deleteSelectedAccounts" :disabled="selectedAccountIds.length === 0">
+              Xóa mục đã chọn
             </button>
           </div>
 
@@ -131,6 +142,9 @@
             <table v-else class="table table-sm">
               <thead>
                 <tr>
+                  <th style="width: 40px">
+                    <input type="checkbox" :checked="isAllSelected" @change="toggleSelectAll" />
+                  </th>
                   <th>Dữ liệu</th>
                   <th>Trạng thái</th>
                   <th>Ngày tạo</th>
@@ -139,6 +153,9 @@
               </thead>
               <tbody>
                 <tr v-for="acc in filteredAccounts" :key="acc.id">
+                  <td>
+                    <input type="checkbox" v-model="selectedAccountIds" :value="acc.id" />
+                  </td>
                   <td><code>{{ acc.data }}</code></td>
                   <td>
                     <span :class="['badge', acc.status === 'available' ? 'badge-success' : 'badge-secondary']">
@@ -270,6 +287,17 @@
               <input type="checkbox" v-model="form.active" /> Đang bán
             </label>
           </div>
+          <div class="form-group">
+            <label class="form-label preorder-toggle">
+              <input type="checkbox" v-model="form.is_preorder" />
+              <span>
+                📦 Sản phẩm Pre-order (hàng đặt trước, chưa có sẵn)
+              </span>
+            </label>
+            <small class="text-muted d-block mt-1">
+              Kích hoạt nếu hàng chưa về. User sẽ đặt điền thông tin đặt và chờ admin giao thủ công khi hàng về.
+            </small>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="closeModal">Hủy</button>
@@ -334,6 +362,7 @@ const form = reactive({
   image: '',
   images: [],
   active: true,
+  is_preorder: false,
 })
 
 // Gallery image management
@@ -385,6 +414,27 @@ const loadingAccounts = ref(false)
 const addingAccounts = ref(false)
 const bulkAccounts = ref('')
 const accountListSearch = ref('')
+const selectedAccountIds = ref([])
+
+const isAllSelected = computed(() => {
+  if (filteredAccounts.value.length === 0) return false
+  return filteredAccounts.value.every(acc => selectedAccountIds.value.includes(acc.id))
+})
+
+const toggleSelectAll = () => {
+  if (isAllSelected.value) {
+    // Deselect all in current view
+    const currentIds = filteredAccounts.value.map(acc => acc.id)
+    selectedAccountIds.value = selectedAccountIds.value.filter(id => !currentIds.includes(id))
+  } else {
+    // Select all in current view
+    filteredAccounts.value.forEach(acc => {
+      if (!selectedAccountIds.value.includes(acc.id)) {
+        selectedAccountIds.value.push(acc.id)
+      }
+    })
+  }
+}
 
 const accountPagination = reactive({
   page: 1,
@@ -411,6 +461,7 @@ const closeAccountModal = () => {
   selectedProduct.value = null
   accounts.value = []
   accountListSearch.value = ''
+  selectedAccountIds.value = []
 }
 
 const loadAccounts = async (page = 1) => {
@@ -496,6 +547,7 @@ const clearAccounts = async () => {
     
     // Refresh to page 1
     await loadAccounts(1)
+    selectedAccountIds.value = []
     
     const product = products.value.find(p => p.id === selectedProduct.value.id)
     if (product) product.stock = response.data.stock
@@ -503,6 +555,66 @@ const clearAccounts = async () => {
   } catch (error) {
     toast.error(error.response?.data?.message || 'Xóa thất bại')
   }
+}
+
+const deleteSelectedAccounts = async () => {
+  if (selectedAccountIds.value.length === 0) return
+  const count = selectedAccountIds.value.length
+  const confirmed = await confirm(`Bạn có chắc chắn muốn xóa ${count} tài khoản đã chọn?`, { type: 'danger' })
+  if (!confirmed) return
+  
+  try {
+    const response = await adminApi.deleteAccountsBulk(selectedProduct.value.id, selectedAccountIds.value)
+    selectedAccountIds.value = []
+    
+    // Refresh current page
+    await loadAccounts(accountPagination.page)
+    
+    const product = products.value.find(p => p.id === selectedProduct.value.id)
+    if (product) product.stock = response.data.stock
+    toast.success(`Đã xóa ${count} tài khoản thành công!`)
+  } catch (error) {
+    toast.error(error.response?.data?.message || 'Xóa hàng loạt thất bại')
+  }
+}
+
+const exportSelectedExcel = () => {
+  if (selectedAccountIds.value.length === 0) return
+  
+  const selectedData = accounts.value.filter(acc => selectedAccountIds.value.includes(acc.id))
+  if (selectedData.length === 0) {
+     toast.error('Không tìm thấy dữ liệu đã chọn trong trang này.')
+     return
+  }
+
+  // Generate CSV with BOM for Vietnamese support in Excel
+  const headers = ['ID', 'Dữ liệu', 'Trạng thái', 'Ngày tạo']
+  const rows = selectedData.map(acc => [
+    acc.id,
+    acc.data,
+    acc.status === 'available' ? 'Sẵn sàng' : 'Đã bán',
+    new Date(acc.createdAt || acc.created_at).toLocaleString()
+  ])
+
+  let csvContent = "\uFEFF" // UTF-8 BOM
+  csvContent += headers.join(',') + '\n'
+  rows.forEach(row => {
+    // Double quote and escape columns to handle potential commas in account data
+    const formattedRow = row.map(cell => `"${String(cell).replace(/"/g, '""')}"`)
+    csvContent += formattedRow.join(',') + '\n'
+  })
+
+  const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+  const url = URL.createObjectURL(blob)
+  const link = document.createElement('a')
+  link.setAttribute('href', url)
+  link.setAttribute('download', `export_accounts_${selectedProduct.value.id}_${new Date().getTime()}.csv`)
+  link.style.visibility = 'hidden'
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  
+  toast.success(`Đã xuất Excel cho ${selectedData.length} tài khoản thành công!`)
 }
 
 // Tìm kiếm tài khoản
@@ -594,6 +706,7 @@ const openModal = (product = null) => {
       image: product.image || '',
       images: (product.images || []).sort((a, b) => a.sortOrder - b.sortOrder).map(img => img.url),
       active: product.active,
+      is_preorder: product.isPreorder || false,
     })
   } else {
     Object.assign(form, {
@@ -606,6 +719,7 @@ const openModal = (product = null) => {
       image: '',
       images: [],
       active: true,
+      is_preorder: false,
     })
   }
   newImageUrl.value = ''
@@ -642,7 +756,8 @@ const saveProduct = async () => {
       stock: form.stock,
       image: form.image,
       images: form.images,
-      active: form.active
+      active: form.active,
+      is_preorder: form.is_preorder,
     }
 
     if (editing.value) {
@@ -692,6 +807,41 @@ onMounted(() => {
 .filters {
   display: flex;
   gap: 1rem;
+}
+
+.badge-preorder-sm {
+  background: rgba(245, 158, 11, 0.12);
+  color: #d97706;
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  border-radius: 4px;
+  padding: 0.12rem 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.badge-instant-sm {
+  background: rgba(99, 102, 241, 0.08);
+  color: #6366f1;
+  border: 1px solid rgba(99, 102, 241, 0.2);
+  border-radius: 4px;
+  padding: 0.12rem 0.45rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.preorder-toggle {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  cursor: pointer;
+  font-weight: 500;
+}
+
+.preorder-toggle input[type="checkbox"] {
+  margin-top: 2px;
+  flex-shrink: 0;
 }
 
 .image-preview {

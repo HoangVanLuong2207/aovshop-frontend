@@ -51,6 +51,20 @@
             <p class="account-tip">Định dạng: <strong>tài khoản|mật khẩu</strong></p>
           </div>
 
+          <!-- Pre-order: customer note -->
+          <div v-if="order.order_type === 'preorder' && order.customer_note" class="customer-note-box">
+            <div class="cnote-header">📝 Thông tin bạn đã đặt:</div>
+            <pre class="cnote-content">{{ order.customer_note }}</pre>
+          </div>
+
+          <!-- Pre-order: delivery from admin -->
+          <div v-if="order.delivery_data" class="delivery-box">
+            <div class="delivery-header">📦 Hàng đã về - Thông tin giao:</div>
+            <pre class="delivery-content">{{ order.delivery_data }}</pre>
+            <button class="btn btn-sm btn-secondary mt-2" @click="copyToClipboard(order.delivery_data)">📋 Copy nội dung</button>
+            <p class="delivery-time" v-if="order.delivered_at">🕒 Giao lúc: {{ formatDate(order.delivered_at) }}</p>
+          </div>
+
           <div class="order-footer">
             <div class="order-summary">
               <span v-if="order.discount > 0" class="order-discount">
@@ -119,7 +133,9 @@ const statusClass = (status) => {
   const classes = {
     pending: 'badge-warning',
     processing: 'badge-primary',
+    waiting: 'badge-warning',
     completed: 'badge-success',
+    delivered: 'badge-success',
     cancelled: 'badge-danger',
   }
   return classes[status] || 'badge-primary'
@@ -129,7 +145,9 @@ const statusText = (status) => {
   const texts = {
     pending: 'Chờ xử lý',
     processing: 'Đang xử lý',
+    waiting: '⏳ Chờ hàng về',
     completed: 'Hoàn thành',
+    delivered: '✅ Đã giao hàng',
     cancelled: 'Đã hủy',
   }
   return texts[status] || status
@@ -336,6 +354,65 @@ onMounted(loadOrders)
 
 .btn-icon:hover {
   opacity: 1;
+}
+
+.mt-2 { margin-top: 0.5rem; }
+
+.customer-note-box {
+  margin: 0 1.25rem 1rem;
+  padding: 1rem;
+  background: rgba(var(--primary-rgb), 0.03);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius-sm);
+}
+
+.cnote-header {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: var(--text-secondary);
+  font-size: 0.85rem;
+}
+
+.cnote-content {
+  font-family: inherit;
+  font-size: 0.88rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.delivery-box {
+  margin: 0 1.25rem 1rem;
+  padding: 1rem;
+  background: rgba(16, 185, 129, 0.06);
+  border: 1.5px solid rgba(16, 185, 129, 0.4);
+  border-radius: var(--radius-sm);
+}
+
+.delivery-header {
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  color: #059669;
+}
+
+.delivery-content {
+  font-family: monospace;
+  font-size: 0.9rem;
+  white-space: pre-wrap;
+  word-break: break-word;
+  color: var(--text-primary);
+  margin: 0;
+  background: var(--bg-primary);
+  padding: 0.75rem;
+  border-radius: 4px;
+}
+
+.delivery-time {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  margin-top: 0.5rem;
+  margin-bottom: 0;
 }
 
 .pagination {

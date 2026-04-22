@@ -19,12 +19,14 @@ export const useCartStore = defineStore('cart', {
     actions: {
         addItem(product, quantity = 1) {
             const existingItem = this.items.find(item => item.id === product.id)
+            const isPreorder = product.is_preorder || false
             const availableStock = product.stock || 0
 
             if (existingItem) {
                 const newQuantity = existingItem.quantity + quantity
-                existingItem.quantity = Math.min(newQuantity, availableStock)
-                existingItem.stock = availableStock // Update stock info
+                // Pre-order: no stock limit; instant: limit by available stock
+                existingItem.quantity = isPreorder ? newQuantity : Math.min(newQuantity, availableStock)
+                existingItem.stock = availableStock
             } else {
                 this.items.push({
                     id: product.id,
@@ -32,8 +34,9 @@ export const useCartStore = defineStore('cart', {
                     price: product.price,
                     sale_price: product.sale_price,
                     image: product.image,
-                    quantity: Math.min(quantity, availableStock),
+                    quantity: isPreorder ? quantity : Math.min(quantity, availableStock),
                     stock: availableStock,
+                    is_preorder: isPreorder,
                 })
             }
 

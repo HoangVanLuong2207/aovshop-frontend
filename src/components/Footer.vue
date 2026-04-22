@@ -56,7 +56,7 @@
       <div class="footer-bottom">
         <p>&copy; {{ currentYear }} <strong>{{ settingsStore.shopName }}</strong>. All rights reserved.</p>
         <div class="made-by">
-          Thiết kế với <span class="heart">❤️</span> bởi <span class="author">AOV Shop Team</span>
+          Thiết kế với <span class="heart">❤️</span> bởi <span class="author">Lượng chứ ai</span>
         </div>
       </div>
     </div>

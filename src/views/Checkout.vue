@@ -55,15 +55,27 @@
             </p>
           </div>
 
-          <!-- Note -->
-          <div class="note-section">
-            <h3>Ghi chú</h3>
+          <!-- Contact Info (required for all orders) -->
+          <div class="note-section" :class="{ 'preorder-note-section': hasPreorderItems }">
+            <div v-if="hasPreorderItems" class="preorder-badge-header">
+              <span class="preorder-icon">⏳</span>
+              <div>
+                <h3>Thông tin liên hệ <span class="required-star">*</span></h3>
+                <p class="preorder-hint">Sản phẩm đặt trước — hãy điền ID game, server, tên nhân vật để admin chuẩn bị hàng</p>
+              </div>
+            </div>
+            <h3 v-else>Thông tin liên hệ <span class="required-star">*</span></h3>
             <textarea 
-              v-model="note" 
-              class="form-input" 
-              rows="3" 
-              placeholder="Ghi chú cho đơn hàng (tùy chọn)"
+              v-model="contactInfo" 
+              class="form-input"
+              :class="{ 'preorder-input': hasPreorderItems, 'input-error': contactInfoError }"
+              rows="4" 
+              :placeholder="hasPreorderItems 
+                ? 'Ví dụ: ID game: 12345678 | Server: S1 | Tên nhân vật: AnhHung | SĐT: 09xx...'
+                : 'Số điện thoại, tên, hoặc thông tin liên lạc khác'"
+              required
             ></textarea>
+            <p v-if="contactInfoError" class="text-danger mt-1">⚠️ {{ contactInfoError }}</p>
           </div>
         </div>
 
@@ -96,7 +108,7 @@
             @click="placeOrder"
             :disabled="processing || authStore.balance < total"
           >
-            {{ processing ? 'Đang xử lý...' : 'Thanh toán' }}
+            {{ processing ? 'Đang xử lý...' : (hasPreorderItems ? '📦 Đặt hàng Pre-order' : '💳 Thanh toán') }}
           </button>
 
           <router-link 
@@ -133,8 +145,13 @@ const appliedPromo = ref(null)
 const discount = ref(0)
 const promoError = ref('')
 const applyingPromo = ref(false)
-const note = ref('')
+const contactInfo = ref('')
+const contactInfoError = ref('')
 const processing = ref(false)
+
+const hasPreorderItems = computed(() =>
+  cartStore.items.some(item => item.is_preorder)
+)
 
 const total = computed(() => cartStore.subtotal - discount.value)
 
@@ -173,19 +190,28 @@ const removePromo = () => {
 }
 
 const placeOrder = async () => {
+  contactInfoError.value = ''
+
+  if (!contactInfo.value.trim()) {
+    contactInfoError.value = 'Vui lòng điền thông tin liên hệ trước khi đặt hàng'
+    return
+  }
+
   processing.value = true
   
   try {
     const response = await orderApi.checkout({
       items: cartStore.getCheckoutItems(),
       promo_code: appliedPromo.value?.code || null,
-      note: note.value || null,
+      note: contactInfo.value,
+      customer_note: hasPreorderItems.value ? contactInfo.value : null,
     })
     
     await authStore.fetchProfile()
     cartStore.clearCart()
     
-    toast.success('Thanh toán thành công!')
+    const msg = response.data.message || 'Thành công!'
+    toast.success(msg)
     router.push('/orders')
   } catch (error) {
     console.error('Checkout error:', error)
@@ -325,4 +351,56 @@ const placeOrder = async () => {
 
 .text-success { color: var(--success); }
 .text-danger { color: var(--danger); }
+.mt-1 { margin-top: 0.4rem; }
+
+.preorder-note-section {
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.03));
+  border: 1.5px solid rgba(245, 158, 11, 0.5);
+  border-radius: var(--radius);
+  padding: 1.25rem;
+}
+
+.preorder-badge-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.preorder-icon {
+  font-size: 1.5rem;
+  line-height: 1;
+  margin-top: 2px;
+}
+
+.preorder-badge-header h3 {
+  margin: 0 0 0.25rem;
+  color: #d97706;
+  font-size: 1rem;
+}
+
+.preorder-hint {
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin: 0;
+}
+
+.preorder-input {
+  border-color: rgba(245, 158, 11, 0.4) !important;
+}
+
+.preorder-input:focus {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15) !important;
+}
+
+.required-star {
+  color: var(--danger);
+  margin-left: 2px;
+}
+
+.input-error {
+  border-color: var(--danger) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+}
 </style>

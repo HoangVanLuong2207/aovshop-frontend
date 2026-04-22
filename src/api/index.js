@@ -103,6 +103,7 @@ export const adminApi = {
   exportUnsoldAccounts: (productId) => api.get(`/admin/products/${productId}/accounts/export-unsold`, { responseType: 'blob' }),
   addAccounts: (productId, data) => api.post(`/admin/products/${productId}/accounts`, data),
   deleteAccount: (productId, accountId) => api.delete(`/admin/products/${productId}/accounts/${accountId}`),
+  deleteAccountsBulk: (productId, ids) => api.post(`/admin/products/${productId}/accounts/bulk-delete`, { ids }),
   clearAccounts: (productId) => api.post(`/admin/products/${productId}/accounts/clear`),
   searchAccount: (query) => api.get('/admin/accounts/search', { params: { q: query } }),
 
@@ -118,6 +119,7 @@ export const adminApi = {
   getOrders: (params) => api.get('/admin/orders', { params }),
   getOrder: (id) => api.get(`/admin/orders/${id}`),
   updateOrderStatus: (id, status) => api.patch(`/admin/orders/${id}/status`, { status }),
+  deliverOrder: (id, deliveryData) => api.put(`/admin/orders/${id}/deliver`, { delivery_data: deliveryData }),
   getOrderStats: (params) => api.get('/admin/orders/statistics', { params }),
 
   // Transactions

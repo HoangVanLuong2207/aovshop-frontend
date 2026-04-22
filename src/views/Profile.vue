@@ -17,7 +17,13 @@
               <div class="form-group">
                 <label class="form-label">Email</label>
                 <div class="email-status-wrapper">
-                  <input v-model="profile.email" type="email" class="form-input" disabled style="opacity: 0.7; cursor: not-allowed; flex: 1;" />
+                  <input 
+                    v-model="profile.email" 
+                    type="email" 
+                    class="form-input" 
+                    :disabled="authStore.user?.emailVerified" 
+                    :style="authStore.user?.emailVerified ? 'opacity: 0.7; cursor: not-allowed; flex: 1;' : 'flex: 1;'" 
+                  />
                   <div v-if="authStore.user?.emailVerified" class="status-badge status-verified">
                     ✓ Đã xác thực
                   </div>
@@ -31,7 +37,9 @@
                     {{ resending ? 'Đang gửi...' : '🚀 Gửi lại link xác thực' }}
                   </button>
                 </div>
-                <small style="color: var(--text-muted);">Email không thể thay đổi</small>
+                <small style="color: var(--text-muted);">
+                  {{ authStore.user?.emailVerified ? 'Email không thể thay đổi' : 'Có thể thay đổi cho đến khi xác thực' }}
+                </small>
               </div>
               <button type="submit" class="btn btn-primary" :disabled="updating">
                 {{ updating ? 'Đang lưu...' : 'Cập nhật' }}
