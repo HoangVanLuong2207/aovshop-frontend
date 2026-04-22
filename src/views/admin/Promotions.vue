@@ -12,6 +12,7 @@
         <tr>
           <th>Mã</th>
           <th>Tên</th>
+          <th>Áp dụng cho</th>
           <th>Loại</th>
           <th>Giá trị</th>
           <th>Đơn tối thiểu</th>
@@ -25,6 +26,7 @@
         <tr v-for="promo in promotions" :key="promo.id">
           <td><code>{{ promo.code }}</code></td>
           <td>{{ promo.name }}</td>
+          <td>{{ getAppliedProductsText(promo) }}</td>
           <td>{{ promo.type === 'percent' ? 'Phần trăm' : 'Cố định' }}</td>
           <td>{{ promo.type === 'percent' ? promo.value + '%' : formatPrice(promo.value) }}</td>
           <td>{{ formatPrice(promo.min_order) }}</td>
@@ -178,7 +180,10 @@ const loadPromotions = async () => {
   loading.value = true
   try {
     const response = await adminApi.getPromotions({ per_page: 50 })
-    promotions.value = response.data.data
+    promotions.value = (response.data.data || []).map(promo => ({
+      ...promo,
+      applies_to_product_ids: parseProductIds(promo.applies_to_product_ids ?? promo.appliesToProductIds),
+    }))
   } catch (error) {
     console.error('Failed to load promotions:', error)
   } finally {
@@ -212,6 +217,16 @@ const loadProducts = async () => {
   }
 }
 
+const getAppliedProductsText = (promo) => {
+  const ids = parseProductIds(promo.applies_to_product_ids ?? promo.appliesToProductIds)
+  if (ids.length === 0) return 'Tất cả sản phẩm'
+  if (!products.value.length) return `${ids.length} sản phẩm`
+  return ids
+    .map(id => products.value.find(p => p.id === id)?.name)
+    .filter(Boolean)
+    .join(', ') || `${ids.length} sản phẩm`
+}
+
 const openModal = (promo = null) => {
   editing.value = promo
   if (promo) {
@@ -223,7 +238,7 @@ const openModal = (promo = null) => {
       min_order: promo.min_order || 0,
       max_discount: promo.max_discount,
       usage_limit: promo.usage_limit,
-      applies_to_product_ids: parseProductIds(promo.applies_to_product_ids),
+      applies_to_product_ids: parseProductIds(promo.applies_to_product_ids ?? promo.appliesToProductIds),
       start_date: promo.start_date?.slice(0, 16),
       end_date: promo.end_date?.slice(0, 16),
       active: promo.active,
