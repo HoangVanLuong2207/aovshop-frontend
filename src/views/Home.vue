@@ -1,5 +1,17 @@
-<template>
   <div class="home">
+    <!-- Notification Marquee -->
+    <div v-if="notification.enabled" class="notification-bar">
+      <div class="container">
+        <div class="marquee-wrapper">
+          <div class="marquee-icon">📢</div>
+          <div class="marquee-container">
+            <div class="marquee-text">{{ notification.text }}</div>
+            <div class="marquee-text">{{ notification.text }}</div> <!-- Duplicate for seamless loop -->
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Hero Section with Banner Slider -->
     <section class="hero">
       <!-- Slider Container -->
@@ -178,6 +190,11 @@ const categories = ref([])
 const featuredProducts = ref([])
 const newProducts = ref([])
 const recentOrders = ref([])
+const notification = reactive({
+  enabled: false,
+  text: '',
+  type: 'info'
+})
 const categoriesSection = ref(null)
 
 // Scroll to categories section with slower animation
@@ -453,6 +470,18 @@ onMounted(async () => {
     console.error('Failed to fetch recent orders:', error)
   }
   
+  // Fetch notification info
+  try {
+    const notiRes = await api.get('/shop/notification')
+    if (notiRes.data.enabled) {
+      notification.enabled = true
+      notification.text = notiRes.data.text
+      notification.type = notiRes.data.type
+    }
+  } catch (error) {
+    console.error('Failed to fetch notification:', error)
+  }
+
   // Initialize scroll reveal
   nextTick(() => {
     initScrollReveal()
@@ -1144,6 +1173,50 @@ const initScrollReveal = () => {
 }
 
 @keyframes marqueeScroll {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+
+/* ===== NOTIFICATION BAR ===== */
+.notification-bar {
+  background: rgba(99, 102, 241, 0.1);
+  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  padding: 8px 0;
+  backdrop-filter: blur(10px);
+  position: sticky;
+  top: 70px; /* Below header */
+  z-index: 90;
+}
+
+.marquee-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  overflow: hidden;
+}
+
+.marquee-icon {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  z-index: 2;
+  background: var(--bg-primary);
+  padding-right: 10px;
+}
+
+.marquee-container {
+  display: flex;
+  white-space: nowrap;
+  gap: 50px;
+  animation: notificationScroll 30s linear infinite;
+}
+
+.marquee-text {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--primary-light);
+}
+
+@keyframes notificationScroll {
   0% { transform: translateX(0); }
   100% { transform: translateX(-50%); }
 }

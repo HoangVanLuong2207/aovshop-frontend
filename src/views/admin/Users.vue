@@ -191,7 +191,9 @@ onMounted(loadUsers)
 
 <style scoped>
 .admin-users {
-  padding: 1.5rem;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 .page-header {
@@ -199,6 +201,7 @@ onMounted(loadUsers)
   align-items: center;
   gap: 1rem;
   margin-bottom: 1.5rem;
+  flex-wrap: wrap;
 }
 
 .page-header h1 {
@@ -326,9 +329,11 @@ onMounted(loadUsers)
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.6rem 0 !important;
+    padding: 0.75rem 0 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     text-align: right;
+    gap: 1rem;
+    min-width: 0;
   }
 
   .table td:last-child {
@@ -344,6 +349,18 @@ onMounted(loadUsers)
     color: var(--text-secondary);
     font-size: 0.8rem;
     text-align: left;
+    flex-shrink: 0;
+  }
+
+  /* Chống lẹm nội dung text */
+  .table td {
+    word-break: break-word;
+  }
+
+  .modal {
+    width: 95%;
+    margin: 0 auto;
+    max-height: 85vh;
   }
 }
 </style>

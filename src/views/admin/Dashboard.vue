@@ -62,6 +62,88 @@
         </div>
       </div>
 
+      <!-- Recent Activity Grid -->
+      <div class="grid grid-2 gap-4 mt-4">
+        <!-- Recent Orders -->
+        <div class="card recent-activity">
+          <div class="card-header flex-between">
+            <span>📋 Đơn hàng gần đây</span>
+            <router-link to="/admin/orders" class="text-primary text-sm">Xem tất cả</router-link>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Khách hàng</th>
+                    <th>Tổng tiền</th>
+                    <th>Trạng thái</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="order in recentOrders" :key="order.id">
+                    <td>#{{ order.id }}</td>
+                    <td>
+                      <div class="text-sm">{{ order.user?.name }}</div>
+                      <small class="text-muted">{{ order.user?.email }}</small>
+                    </td>
+                    <td>{{ formatPrice(order.total) }}</td>
+                    <td>
+                      <span :class="['badge', order.status === 'completed' ? 'badge-success' : 'badge-warning']">
+                        {{ order.status }}
+                      </span>
+                    </td>
+                  </tr>
+                  <tr v-if="recentOrders.length === 0">
+                    <td colspan="4" class="text-center py-4 text-muted">Chưa có đơn hàng nào</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Recent Transactions -->
+        <div class="card recent-activity">
+          <div class="card-header flex-between">
+            <span>💳 Giao dịch gần đây</span>
+            <router-link to="/admin/transactions" class="text-primary text-sm">Xem tất cả</router-link>
+          </div>
+          <div class="card-body p-0">
+            <div class="table-responsive">
+              <table class="table table-sm">
+                <thead>
+                  <tr>
+                    <th>ID</th>
+                    <th>Loại</th>
+                    <th>Số tiền</th>
+                    <th>Thời gian</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr v-for="tx in recentTransactions" :key="tx.id">
+                    <td>#{{ tx.id }}</td>
+                    <td>
+                      <span :class="['badge', tx.type === 'deposit' ? 'badge-success' : 'badge-primary']">
+                        {{ tx.type === 'deposit' ? 'Nạp' : 'Mua' }}
+                      </span>
+                    </td>
+                    <td :class="tx.type === 'deposit' ? 'text-success' : 'text-danger'">
+                      {{ tx.type === 'deposit' ? '+' : '' }}{{ formatPrice(tx.amount) }}
+                    </td>
+                    <td class="text-sm">{{ formatDate(tx.createdAt) }}</td>
+                  </tr>
+                  <tr v-if="recentTransactions.length === 0">
+                    <td colspan="4" class="text-center py-4 text-muted">Chưa có giao dịch nào</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Quick Actions -->
       <div class="quick-actions mt-4">
         <h3>Thao tác nhanh</h3>
@@ -101,6 +183,9 @@ const txStats = reactive({
   pending_deposits: 0,
 })
 
+const recentOrders = ref([])
+const recentTransactions = ref([])
+
 const formatPrice = (price) => {
   return new Intl.NumberFormat('vi-VN', {
     style: 'currency',
@@ -108,14 +193,26 @@ const formatPrice = (price) => {
   }).format(price || 0)
 }
 
+const formatDate = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleDateString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit'
+  })
+}
+
 onMounted(async () => {
   try {
-    const [orderRes, txRes] = await Promise.all([
+    const [orderRes, txRes, recentOrdersRes, recentTxRes] = await Promise.all([
       adminApi.getOrderStats(),
       adminApi.getTransactionStats(),
+      adminApi.getOrders({ per_page: 10 }),
+      adminApi.getTransactions({ per_page: 10 }),
     ])
     Object.assign(stats, orderRes.data)
     Object.assign(txStats, txRes.data)
+    recentOrders.value = recentOrdersRes.data.data
+    recentTransactions.value = recentTxRes.data.data
   } catch (error) {
     console.error('Failed to load stats:', error)
   } finally {
@@ -232,5 +329,61 @@ onMounted(async () => {
 .action-btn:hover {
   border-color: var(--primary);
   background: var(--bg-tertiary);
+}
+
+.grid {
+  display: grid;
+}
+
+.grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 992px) {
+  .grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+.recent-activity {
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.recent-activity .card-header {
+  padding: 1rem;
+  font-weight: 600;
+  border-bottom: 1px solid var(--border);
+}
+
+.recent-activity .card-body {
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.table-responsive {
+  width: 100%;
+}
+
+.text-sm {
+  font-size: 0.875rem;
+}
+
+.ml-2 {
+  margin-left: 0.5rem;
+}
+
+.p-0 {
+  padding: 0 !important;
+}
+
+.mt-4 {
+  margin-top: 1.5rem;
+}
+
+.gap-4 {
+  gap: 1.5rem;
 }
 </style>

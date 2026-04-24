@@ -301,6 +301,9 @@ const closeSidebar = () => {
     margin-left: 0;
     padding: 1rem;
     padding-top: 80px;
+    min-width: 0;
+    width: 100%;
+    overflow-x: hidden;
   }
 }
 

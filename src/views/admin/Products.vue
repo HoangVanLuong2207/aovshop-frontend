@@ -64,16 +64,16 @@
       </thead>
       <tbody>
         <tr v-for="product in activeProducts" :key="product.id" :data-product-id="product.id">
-          <td>{{ product.id }}</td>
-          <td>{{ product.name }}</td>
-          <td>
+          <td data-label="ID">{{ product.id }}</td>
+          <td data-label="Tên">{{ product.name }}</td>
+          <td data-label="Loại">
             <span v-if="product.isPreorder" class="badge badge-preorder-sm">📦 Pre-order</span>
             <span v-else class="badge badge-instant-sm">⚡ Thường</span>
           </td>
-          <td>{{ product.category?.name }}</td>
-          <td>{{ formatPrice(product.price) }}</td>
-          <td>{{ (product.sale_price !== undefined && product.sale_price !== null) ? formatPrice(product.sale_price) : (product.salePrice ? formatPrice(product.salePrice) : '-') }}</td>
-          <td>{{ product.stock }}</td>
+          <td data-label="Danh mục">{{ product.category?.name }}</td>
+          <td data-label="Giá">{{ formatPrice(product.price) }}</td>
+          <td data-label="Giá KM">{{ (product.sale_price !== undefined && product.sale_price !== null) ? formatPrice(product.sale_price) : (product.salePrice ? formatPrice(product.salePrice) : '-') }}</td>
+          <td data-label="Tồn kho">{{ product.stock }}</td>
           <td>
             <button class="btn btn-secondary btn-sm" @click="openModal(product)">Sửa</button>
             <button class="btn btn-info btn-sm" @click="openAccountModal(product)">Quản lý kho</button>
@@ -153,16 +153,16 @@
               </thead>
               <tbody>
                 <tr v-for="acc in filteredAccounts" :key="acc.id">
-                  <td>
+                  <td data-label="Chọn">
                     <input type="checkbox" v-model="selectedAccountIds" :value="acc.id" />
                   </td>
-                  <td><code>{{ acc.data }}</code></td>
-                  <td>
+                  <td data-label="Dữ liệu"><code>{{ acc.data }}</code></td>
+                  <td data-label="Trạng thái">
                     <span :class="['badge', acc.status === 'available' ? 'badge-success' : 'badge-secondary']">
                       {{ acc.status === 'available' ? 'Sẵn sàng' : 'Đã bán' }}
                     </span>
                   </td>
-                  <td>{{ new Date(acc.createdAt).toLocaleDateString() }}</td>
+                  <td data-label="Ngày tạo">{{ new Date(acc.createdAt).toLocaleDateString() }}</td>
                   <td>
                     <button class="btn btn-danger btn-sm" @click="deleteAccount(acc)" v-if="acc.status === 'available'">Xóa</button>
                   </td>
@@ -804,6 +804,12 @@ onMounted(() => {
 </script>
 
 <style scoped>
+.admin-products {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 .filters {
   display: flex;
   gap: 1rem;
@@ -927,25 +933,49 @@ onMounted(() => {
 
 /* Mobile responsive table */
 @media (max-width: 768px) {
-  .table th:nth-child(1),
-  .table td:nth-child(1),
-  .table th:nth-child(3),
-  .table td:nth-child(3),
-  .table th:nth-child(5),
-  .table td:nth-child(5),
-  .table th:nth-child(7),
-  .table td:nth-child(7) {
+  .table thead {
     display: none;
   }
-  
-  .table th, .table td {
-    padding: 0.5rem 0.25rem;
-    font-size: 0.85rem;
+
+  .table tbody tr {
+    display: block;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
   }
-  
-  .btn-sm {
-    padding: 0.25rem 0.5rem;
-    font-size: 0.75rem;
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: right;
+    gap: 1rem;
+    min-width: 0;
+  }
+
+  .table td:last-child {
+    border-bottom: none;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-top: 1rem !important;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .table td > * {
+    max-width: 100%;
+    word-break: break-word;
   }
   
   .filters {
@@ -959,6 +989,12 @@ onMounted(() => {
   .account-search-wrapper {
     width: 100%;
     margin-top: 0.5rem;
+  }
+
+  .modal {
+    width: 95% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
   }
 }
 

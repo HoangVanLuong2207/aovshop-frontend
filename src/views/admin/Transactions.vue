@@ -177,6 +177,12 @@ onMounted(loadTransactions)
 </script>
 
 <style scoped>
+.admin-transactions {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 .filters {
   display: flex;
   gap: 1rem;
@@ -192,14 +198,18 @@ onMounted(loadTransactions)
   color: var(--text-muted);
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+  }
   .filter-group {
     flex-direction: column;
     gap: 0.5rem;
   }
-}
+  .filter-group .form-input {
+    width: 100% !important;
+  }
 
-@media (max-width: 768px) {
   .page-header {
     flex-direction: column;
     align-items: flex-start;
@@ -224,15 +234,25 @@ onMounted(loadTransactions)
 
   .table td {
     display: flex;
+    flex-wrap: wrap; /* Cho phép nội dung xuống dòng nếu quá dài */
     justify-content: space-between;
     align-items: center;
-    padding: 0.6rem 0 !important;
+    padding: 0.75rem 0 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     text-align: right;
+    gap: 0.5rem;
+    min-width: 0;
+  }
+
+  .table td > * {
+    max-width: 100%;
+    word-break: break-all;
   }
 
   .table td:last-child {
     border-bottom: none;
+    justify-content: center;
+    padding-top: 1rem !important;
   }
 
   .table td::before {
@@ -241,13 +261,19 @@ onMounted(loadTransactions)
     color: var(--text-secondary);
     font-size: 0.8rem;
     text-align: left;
+    flex-shrink: 0;
   }
 
   .text-muted-desc {
-    max-width: 60%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    text-align: right;
+    width: 100%;
+    word-break: break-word;
+  }
+
+  .modal {
+    width: 95% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
   }
 }
 

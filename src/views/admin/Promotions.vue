@@ -24,18 +24,18 @@
       </thead>
       <tbody>
         <tr v-for="promo in promotions" :key="promo.id">
-          <td><code>{{ promo.code }}</code></td>
-          <td>{{ promo.name }}</td>
-          <td>{{ getAppliedProductsText(promo) }}</td>
-          <td>{{ promo.type === 'percent' ? 'Phần trăm' : 'Cố định' }}</td>
-          <td>{{ promo.type === 'percent' ? promo.value + '%' : formatPrice(promo.value) }}</td>
-          <td>{{ formatPrice(promo.min_order) }}</td>
-          <td>
+          <td data-label="Mã"><code>{{ promo.code }}</code></td>
+          <td data-label="Tên">{{ promo.name }}</td>
+          <td data-label="Áp dụng">{{ getAppliedProductsText(promo) }}</td>
+          <td data-label="Loại">{{ promo.type === 'percent' ? 'Phần trăm' : 'Cố định' }}</td>
+          <td data-label="Giá trị">{{ promo.type === 'percent' ? promo.value + '%' : formatPrice(promo.value) }}</td>
+          <td data-label="Đơn tối thiểu">{{ formatPrice(promo.min_order) }}</td>
+          <td data-label="Thời gian">
             {{ formatDate(promo.start_date) }}<br>
             <small class="text-muted">→ {{ formatDate(promo.end_date) }}</small>
           </td>
-          <td>{{ promo.used_count }}/{{ promo.usage_limit || '∞' }}</td>
-          <td>
+          <td data-label="Đã dùng">{{ promo.used_count }}/{{ promo.usage_limit || '∞' }}</td>
+          <td data-label="Trạng thái">
             <button 
               :class="['badge', promo.active ? 'badge-success' : 'badge-danger']"
               style="cursor: pointer"
@@ -337,10 +337,74 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+.admin-promotions {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 code {
   background: var(--bg-tertiary);
   padding: 0.25rem 0.5rem;
   border-radius: 4px;
   font-family: monospace;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1rem;
+  }
+  .page-header .btn {
+    width: 100%;
+  }
+
+  .table thead {
+    display: none;
+  }
+
+  .table tbody tr {
+    display: block;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 1rem;
+    margin-bottom: 1rem;
+  }
+
+  .table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    text-align: right;
+    gap: 1rem;
+    min-width: 0;
+    word-break: break-word;
+  }
+
+  .table td:last-child {
+    border-bottom: none;
+    justify-content: center;
+    gap: 0.5rem;
+    padding-top: 1rem !important;
+  }
+
+  .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    text-align: left;
+    flex-shrink: 0;
+  }
+
+  .modal {
+    width: 95% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
+  }
 }
 </style>

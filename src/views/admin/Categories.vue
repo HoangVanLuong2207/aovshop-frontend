@@ -213,6 +213,12 @@ onMounted(loadCategories)
 </script>
 
 <style scoped>
+.admin-categories {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 .image-preview {
   margin-top: 0.75rem;
 }
@@ -255,9 +261,11 @@ onMounted(loadCategories)
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.6rem 0 !important;
+    padding: 0.75rem 0 !important;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     text-align: right;
+    gap: 1rem;
+    min-width: 0;
   }
 
   .table td:last-child {
@@ -273,13 +281,17 @@ onMounted(loadCategories)
     color: var(--text-secondary);
     font-size: 0.8rem;
     text-align: left;
+    flex-shrink: 0;
   }
 
   .text-muted-desc {
-    max-width: 60%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    word-break: break-word;
+  }
+
+  .modal {
+    width: 95% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
   }
 }
 </style>

@@ -125,10 +125,10 @@
               </thead>
               <tbody>
                 <tr v-for="item in selectedOrder.items" :key="item.id">
-                  <td>{{ item.productName }}</td>
-                  <td>{{ item.quantity }}</td>
-                  <td>{{ formatPrice(item.price) }}</td>
-                  <td>{{ formatPrice(item.total) }}</td>
+                  <td data-label="Tên">{{ item.productName }}</td>
+                  <td data-label="SL">{{ item.quantity }}</td>
+                  <td data-label="Đơn giá">{{ formatPrice(item.price) }}</td>
+                  <td data-label="Thành tiền">{{ formatPrice(item.total) }}</td>
                 </tr>
               </tbody>
             </table>
@@ -217,19 +217,15 @@ const formatDate = (date) => {
   return d.toLocaleString('vi-VN')
 }
 
-const filteredOrders = computed(() => {
-  let list = orders.value
-  if (filter.type) {
-    list = list.filter(o => o.orderType === filter.type)
-  }
-  return list
-})
+// JS filtering removed, now using backend filtering in loadOrders
+const filteredOrders = computed(() => orders.value)
 
 const loadOrders = async () => {
   loading.value = true
   try {
     const params = { per_page: 100 }
     if (filter.status) params.status = filter.status
+    if (filter.type) params.type = filter.type
     const response = await adminApi.getOrders(params)
     orders.value = response.data.data
   } catch (error) {
@@ -278,6 +274,12 @@ onMounted(loadOrders)
 </script>
 
 <style scoped>
+.admin-orders {
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
 .filters {
   display: flex;
   gap: 1rem;
@@ -289,7 +291,10 @@ onMounted(loadOrders)
   width: 100%;
 }
 
-@media (max-width: 600px) {
+@media (max-width: 768px) {
+  .filters {
+    flex-direction: column;
+  }
   .filter-group {
     flex-direction: column;
     gap: 0.5rem;
@@ -423,11 +428,19 @@ onMounted(loadOrders)
 
   .table td {
     display: flex;
+    flex-wrap: wrap; /* Cho phép nội dung xuống dòng nếu quá dài */
     justify-content: space-between;
     align-items: center;
     border-bottom: 1px solid rgba(255, 255, 255, 0.05);
     padding: 0.75rem 0 !important;
     text-align: right !important;
+    gap: 0.5rem;
+    min-width: 0; /* Cho phép nội dung co lại */
+  }
+
+  .table td > * {
+    max-width: 100%;
+    word-break: break-all;
   }
 
   .table td:last-child {
@@ -444,10 +457,57 @@ onMounted(loadOrders)
     color: var(--text-secondary);
     text-align: left;
     font-size: 0.85rem;
+    flex-shrink: 0; /* Không cho phép nhãn bị co lại */
+    margin-right: 0.5rem;
+  }
+
+  /* Đảm bảo nội dung bên phải không đẩy khung */
+  .table td > div,
+  .table td > span,
+  .table td > select {
+    max-width: 100%;
+    word-break: break-word;
   }
 
   .order-item-row {
     text-align: right;
+  }
+
+  .modal {
+    width: 95% !important;
+    max-width: 100% !important;
+    margin: 0 auto;
+    border-radius: var(--radius);
+  }
+
+  /* Table inside Modal on Mobile */
+  .modal .table thead {
+    display: none;
+  }
+
+  .modal .table tbody tr {
+    display: block;
+    padding: 0.75rem;
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border);
+    margin-bottom: 0.5rem;
+  }
+
+  .modal .table td {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.4rem 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  }
+
+  .modal .table td:last-child {
+    border-bottom: none;
+  }
+
+  .modal .table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--text-secondary);
   }
 }
 </style>
