@@ -1,3 +1,4 @@
+<template>
   <div class="home">
     <!-- Notification Marquee -->
     <div v-if="notification.enabled" class="notification-bar">
@@ -176,7 +177,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
+import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { shopApi } from '../api'
 import api from '../api'
 import ProductCard from '../components/ProductCard.vue'
