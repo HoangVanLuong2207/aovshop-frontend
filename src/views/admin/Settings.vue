@@ -150,6 +150,43 @@
       </form>
     </div>
 
+    <!-- Telegram Bot Section -->
+    <div class="settings-section">
+      <h2>🤖 Telegram Bot (Thông báo Admin)</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+        Nhận thông báo đơn hàng và nạp tiền ngay lập tức qua Telegram. Không sợ bị chặn như trình duyệt.
+      </p>
+      
+      <form @submit.prevent="saveSettings" class="settings-form">
+        <div class="form-group">
+          <label>Bot Token (@BotFather)</label>
+          <input 
+            type="password" 
+            v-model="settings.telegram_bot_token" 
+            class="form-input"
+            placeholder="Ví dụ: 123456789:ABCdefGHI..."
+          />
+        </div>
+
+        <div class="form-group">
+          <label>Chat ID (@userinfobot)</label>
+          <input 
+            type="text" 
+            v-model="settings.telegram_chat_id" 
+            class="form-input"
+            placeholder="Ví dụ: 123456789"
+          />
+          <small>Lưu ý: Bạn phải chủ động chat hoặc /start với Bot trước thì nó mới gửi tin nhắn được.</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" :disabled="saving">
+            {{ saving ? 'Đang lưu...' : '💾 Lưu Telegram Bot' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
     </div>
 
     <div class="settings-column">
@@ -336,6 +373,8 @@ const settings = ref({
   vapid_public_key: '',
   vapid_private_key: '',
   vapid_subject: '',
+  telegram_bot_token: '',
+  telegram_chat_id: '',
 })
 
 const showToken = ref(false)
