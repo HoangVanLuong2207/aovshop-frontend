@@ -42,6 +42,7 @@ export const useCartStore = defineStore('cart', {
                     quantity: safeInitialQuantity,
                     stock: isPreorder ? 0 : (availableStock || 1),
                     is_preorder: isPreorder,
+                    preorder_placeholder: product.preorder_placeholder,
                 })
             }
 
