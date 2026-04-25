@@ -127,4 +127,6 @@ export const adminApi = {
   getTransaction: (id) => api.get(`/admin/transactions/${id}`),
   getTransactionStats: () => api.get('/admin/transactions/statistics'),
   manualDeposit: (data) => api.post('/admin/transactions/deposit', data),
+  testPush: () => api.post('/admin/test-push'),
+  testTelegram: () => api.post('/admin/test-telegram'),
 }
