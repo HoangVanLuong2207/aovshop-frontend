@@ -13,6 +13,11 @@
         <option value="">Tất cả danh mục</option>
         <option v-for="cat in categories" :key="cat.id" :value="cat.id">{{ cat.name }}</option>
       </select>
+      <select v-model="filter.active" class="form-input" style="width: auto">
+        <option value="">Tất cả trạng thái</option>
+        <option value="true">Đang bán</option>
+        <option value="false">Ngừng bán</option>
+      </select>
       <input v-model="filter.search" type="text" class="form-input" placeholder="Tìm sản phẩm..." style="width: 200px" />
       <div class="account-search-wrapper">
         <input 
@@ -59,6 +64,7 @@
           <th>Giá</th>
           <th>Giá KM</th>
           <th>Tồn kho</th>
+          <th>Trạng thái</th>
           <th>Thao tác</th>
         </tr>
       </thead>
@@ -74,14 +80,26 @@
           <td data-label="Giá">{{ formatPrice(product.price) }}</td>
           <td data-label="Giá KM">{{ (product.sale_price !== undefined && product.sale_price !== null) ? formatPrice(product.sale_price) : (product.salePrice ? formatPrice(product.salePrice) : '-') }}</td>
           <td data-label="Tồn kho">{{ product.stock }}</td>
+          <td data-label="Trạng thái">
+            <span :class="['badge', product.active ? 'badge-success' : 'badge-danger']">
+              {{ product.active ? 'Đang bán' : 'Ngừng bán' }}
+            </span>
+          </td>
           <td>
             <button class="btn btn-secondary btn-sm" @click="openModal(product)">Sửa</button>
-            <button class="btn btn-info btn-sm" @click="openAccountModal(product)">Quản lý kho</button>
+            <button class="btn btn-info btn-sm" @click="openAccountModal(product)">Kho</button>
             <button class="btn btn-danger btn-sm" @click="deleteProduct(product)">Xóa</button>
           </td>
         </tr>
       </tbody>
     </table>
+
+    <Pagination 
+      v-model:page="page" 
+      v-model:limit="limit" 
+      :total="total" 
+      :totalPages="totalPages" 
+    />
 
     <!-- Product Modal -->
     <!-- ... as is ... -->
@@ -323,6 +341,7 @@ import { ref, reactive, onMounted, computed, watch } from 'vue'
 import { adminApi } from '../../api'
 import { useToast } from '../../composables/useToast'
 import { isDirectLink, convertDriveLink } from '../../utils/image'
+import Pagination from '../../components/Pagination.vue'
 
 const { toast, confirm } = useToast()
 
@@ -333,22 +352,15 @@ const editing = ref(null)
 const products = ref([])
 const categories = ref([])
 
+// Pagination
+const page = ref(1)
+const limit = ref(10)
+const total = ref(0)
+const totalPages = ref(0)
+
 // Filter sản phẩm theo: active, category, search (tên hoặc tài khoản)
 const activeProducts = computed(() => {
-  let result = products.value.filter(p => p.active !== false)
-  
-  // Filter theo danh mục
-  if (filter.category_id) {
-    result = result.filter(p => p.categoryId == filter.category_id || p.category_id == filter.category_id)
-  }
-  
-  // Filter theo tên sản phẩm
-  if (filter.search) {
-    const searchLower = filter.search.toLowerCase()
-    result = result.filter(p => p.name.toLowerCase().includes(searchLower))
-  }
-  
-  return result
+  return products.value
 })
 
 // Tìm kiếm tài khoản
@@ -357,7 +369,7 @@ const accountSearchResult = ref(null)
 const searchingAccount = ref(false)
 
 
-const filter = reactive({ category_id: '', search: '' })
+const filter = reactive({ category_id: '', search: '', active: '' })
 
 const form = reactive({
   category_id: '',
@@ -675,17 +687,39 @@ const debouncedSearch = () => {
 const loadProducts = async () => {
   loading.value = true
   try {
-    const params = { per_page: 50 }
+    const params = { 
+      page: page.value,
+      limit: limit.value 
+    }
     if (filter.category_id) params.category_id = filter.category_id
     if (filter.search) params.search = filter.search
+    if (filter.active !== '') params.active = filter.active
     const response = await adminApi.getProducts(params)
     products.value = response.data.data
+    total.value = response.data.pagination.total
+    totalPages.value = response.data.pagination.totalPages
   } catch (error) {
     console.error('Failed to load products:', error)
+    toast.error('Lỗi khi tải sản phẩm')
   } finally {
     loading.value = false
   }
 }
+
+// Watch for changes
+watch([page, limit], loadProducts)
+watch(() => filter.category_id, () => {
+  page.value = 1
+  loadProducts()
+})
+watch(() => filter.active, () => {
+  page.value = 1
+  loadProducts()
+})
+watch(() => filter.search, () => {
+  page.value = 1
+  debouncedSearch()
+})
 
 const loadCategories = async () => {
   try {

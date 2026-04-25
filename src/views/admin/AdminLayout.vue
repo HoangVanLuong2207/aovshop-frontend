@@ -44,6 +44,9 @@
         <router-link to="/admin/transactions" class="nav-item" @click="closeSidebar">
           💳 Giao dịch
         </router-link>
+        <router-link to="/admin/deposits" class="nav-item" @click="closeSidebar">
+          💰 Nạp tiền
+        </router-link>
         <router-link to="/admin/users" class="nav-item" @click="closeSidebar">
           👥 Người dùng
         </router-link>

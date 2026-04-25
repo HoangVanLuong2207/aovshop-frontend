@@ -40,6 +40,13 @@
           </tr>
         </tbody>
       </table>
+      
+      <Pagination 
+        v-model:page="page" 
+        v-model:limit="limit" 
+        :total="total" 
+        :totalPages="totalPages" 
+      />
     </div>
 
     <!-- Modal -->
@@ -92,6 +99,7 @@ import { ref, reactive, onMounted, watch } from 'vue'
 import { adminApi } from '../../api'
 import { useToast } from '../../composables/useToast'
 import { isDirectLink, convertDriveLink } from '../../utils/image'
+import Pagination from '../../components/Pagination.vue'
 
 const { toast, confirm } = useToast()
 
@@ -100,6 +108,12 @@ const saving = ref(false)
 const showModal = ref(false)
 const editing = ref(null)
 const categories = ref([])
+
+// Pagination
+const page = ref(1)
+const limit = ref(10)
+const total = ref(0)
+const totalPages = ref(0)
 
 
 const form = reactive({
@@ -122,14 +136,23 @@ watch(() => form.image, (newVal) => {
 const loadCategories = async () => {
   loading.value = true
   try {
-    const response = await adminApi.getCategories({ per_page: 100 })
+    const response = await adminApi.getCategories({ 
+      page: page.value, 
+      limit: limit.value 
+    })
     categories.value = response.data.data
+    total.value = response.data.pagination.total
+    totalPages.value = response.data.pagination.totalPages
   } catch (error) {
     console.error('Failed to load categories:', error)
+    toast.error('Lỗi khi tải danh mục')
   } finally {
     loading.value = false
   }
 }
+
+// Watch for pagination changes
+watch([page, limit], loadCategories)
 
 const handleImageError = (e) => {
   e.target.src = 'https://via.placeholder.com/200x150?text=Invalid+URL'

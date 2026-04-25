@@ -42,6 +42,7 @@
               <td data-label="Số dư" class="text-success-val">{{ formatPrice(user.balance) }}</td>
               <td data-label="Ngày tạo">{{ formatDate(user.createdAt) }}</td>
               <td>
+                <button class="btn btn-sm btn-secondary" title="Biến động số dư" @click="viewHistory(user)">⏳</button>
                 <button class="btn btn-sm btn-secondary" @click="editUser(user)">✏️</button>
                 <button 
                   class="btn btn-sm btn-danger" 
@@ -52,7 +53,14 @@
             </tr>
           </tbody>
         </table>
-      </div>
+      
+      <Pagination 
+        v-model:page="page" 
+        v-model:limit="limit" 
+        :total="total" 
+        :totalPages="totalPages" 
+      />
+    </div>
     </div>
 
     <!-- Edit Modal -->
@@ -93,13 +101,60 @@
         </div>
       </div>
     </Transition>
+
+    <!-- History Modal -->
+    <Transition name="modal">
+      <div v-if="showHistory" class="modal-overlay" @click.self="closeHistory">
+        <div class="modal modal-lg">
+          <div class="modal-header">
+            <h3>Lịch sử giao dịch #{{ historyUser.id }} - {{ historyUser.name }}</h3>
+            <button class="btn-close" @click="closeHistory">×</button>
+          </div>
+          <div class="modal-body history-body">
+            <div v-if="loadingHistory" class="loading"><div class="spinner"></div></div>
+            <table v-else class="table">
+              <thead>
+                <tr>
+                  <th>Ngày</th>
+                  <th>Loại</th>
+                  <th>Số tiền</th>
+                  <th>Trước</th>
+                  <th>Sau</th>
+                  <th>Nội dung</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="tx in userTransactions" :key="tx.id">
+                  <td class="text-nowrap">{{ formatDateFull(tx.createdAt) }}</td>
+                  <td>
+                    <span :class="['badge', getTxBadgeClass(tx.type)]">
+                      {{ getTxLabel(tx.type) }}
+                    </span>
+                  </td>
+                  <td :class="tx.amount > 0 ? 'text-success' : 'text-danger'">
+                    {{ tx.amount > 0 ? '+' : '' }}{{ formatPrice(tx.amount) }}
+                  </td>
+                  <td class="text-secondary">{{ formatPrice(tx.balanceBefore) }}</td>
+                  <td class="text-secondary">{{ formatPrice(tx.balanceAfter) }}</td>
+                  <td><small>{{ tx.description }}</small></td>
+                </tr>
+                <tr v-if="userTransactions.length === 0">
+                  <td colspan="6" class="text-center py-4">Không có giao dịch nào</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import api from '../../api'
 import { useToast } from '../../composables/useToast'
+import Pagination from '../../components/Pagination.vue'
 
 const { toast, confirm } = useToast()
 
@@ -107,16 +162,22 @@ const users = ref([])
 const loading = ref(true)
 const search = ref('')
 const showModal = ref(false)
-const editingUser = ref(null)
-const editForm = ref({})
 const saving = ref(false)
 
+// Pagination
+const page = ref(1)
+const limit = ref(10)
+const total = ref(0)
+const totalPages = ref(0)
+
+// History Modal
+const showHistory = ref(false)
+const historyUser = ref(null)
+const userTransactions = ref([])
+const loadingHistory = ref(false)
+
 const filteredUsers = computed(() => {
-  if (!search.value) return users.value
-  const s = search.value.toLowerCase()
-  return users.value.filter(u => 
-    u.name.toLowerCase().includes(s) || u.email.toLowerCase().includes(s)
-  )
+  return users.value
 })
 
 const formatPrice = (price) => {
@@ -131,17 +192,55 @@ const formatDate = (date) => {
   return new Date(date).toLocaleDateString('vi-VN')
 }
 
+const formatDateFull = (date) => {
+  if (!date) return '-'
+  return new Date(date).toLocaleString('vi-VN')
+}
+
+const getTxBadgeClass = (type) => {
+  switch (type) {
+    case 'deposit': return 'badge-success'
+    case 'purchase': return 'badge-danger'
+    case 'refund': return 'badge-warning'
+    default: return 'badge-secondary'
+  }
+}
+
+const getTxLabel = (type) => {
+  switch (type) {
+    case 'deposit': return 'Nạp tiền'
+    case 'purchase': return 'Mua hàng'
+    case 'refund': return 'Hoàn tiền'
+    default: return type
+  }
+}
+
 const loadUsers = async () => {
   loading.value = true
   try {
-    const response = await api.get('/admin/users')
+    const params = {
+      page: page.value,
+      limit: limit.value,
+      q: search.value || undefined
+    }
+    const response = await api.get('/admin/users', { params })
     users.value = response.data.data
+    total.value = response.data.pagination.total
+    totalPages.value = response.data.pagination.totalPages
   } catch (error) {
     console.error('Failed to load users:', error)
+    toast.error('Lỗi khi tải người dùng')
   } finally {
     loading.value = false
   }
 }
+
+// Watch for changes
+watch([page, limit], loadUsers)
+watch(search, () => {
+  page.value = 1
+  loadUsers()
+})
 
 const editUser = (user) => {
   editingUser.value = user
@@ -184,6 +283,26 @@ const deleteUser = async (user) => {
   } catch (error) {
     toast.error(error.response?.data?.message || 'Lỗi khi xóa')
   }
+}
+
+const viewHistory = async (user) => {
+  historyUser.value = user
+  showHistory.value = true
+  loadingHistory.value = true
+  try {
+    const response = await api.get(`/admin/users/${user.id}/transactions`)
+    userTransactions.value = response.data.data
+  } catch (error) {
+    toast.error('Không thể tải lịch sử giao dịch')
+  } finally {
+    loadingHistory.value = false
+  }
+}
+
+const closeHistory = () => {
+  showHistory.value = false
+  historyUser.value = null
+  userTransactions.value = []
 }
 
 onMounted(loadUsers)
@@ -242,6 +361,19 @@ onMounted(loadUsers)
   width: 100%;
   max-width: 450px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
+}
+
+.modal-lg {
+  max-width: 900px;
+}
+
+.history-body {
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.text-nowrap {
+  white-space: nowrap;
 }
 
 .modal-header {

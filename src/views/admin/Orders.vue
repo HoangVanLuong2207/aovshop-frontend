@@ -7,13 +7,13 @@
     <div class="filters mb-3">
       <div class="filter-group">
         <select v-model="filter.status" class="form-input" @change="loadOrders">
-          <option value="">Tất cả trạng thái</option>
-          <option value="pending">Chờ xử lý</option>
-          <option value="waiting">⏳ Chờ hàng về (Pre-order)</option>
-          <option value="processing">Đang xử lý</option>
-          <option value="delivered">✅ Đã giao hàng</option>
-          <option value="completed">Hoàn thành</option>
-          <option value="cancelled">Đã hủy</option>
+          <option value="">🔍 Tất cả trạng thái</option>
+          <option value="pending">⏳ Chờ xử lý</option>
+          <option value="waiting">📦 Chờ hàng về</option>
+          <option value="processing">⚙️ Đang xử lý</option>
+          <option value="delivered">🚚 Đã giao hàng</option>
+          <option value="completed">✅ Hoàn thành</option>
+          <option value="cancelled">❌ Đã hủy</option>
         </select>
         <select v-model="filter.type" class="form-input" @change="loadOrders">
           <option value="">Tất cả loại</option>
@@ -58,16 +58,16 @@
           <td data-label="Trạng thái">
             <select 
               v-model="order.status" 
-              class="form-input" 
-              style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.85rem"
+              class="status-select" 
+              :class="'status-' + order.status"
               @change="updateStatus(order)"
             >
-              <option value="pending">Chờ xử lý</option>
-              <option value="waiting">⏳ Chờ hàng về</option>
-              <option value="processing">Đang xử lý</option>
-              <option value="delivered">✅ Đã giao</option>
-              <option value="completed">Hoàn thành</option>
-              <option value="cancelled">Đã hủy</option>
+              <option value="pending">⏳ Chờ xử lý</option>
+              <option value="waiting">📦 Chờ hàng về</option>
+              <option value="processing">⚙️ Đang xử lý</option>
+              <option value="delivered">🚚 Đã giao</option>
+              <option value="completed">✅ Hoàn thành</option>
+              <option value="cancelled">❌ Đã hủy</option>
             </select>
           </td>
           <td data-label="Ngày tạo">{{ formatDate(order.createdAt) }}</td>
@@ -84,6 +84,13 @@
         </tr>
       </tbody>
     </table>
+
+    <Pagination 
+      v-model:page="page" 
+      v-model:limit="limit" 
+      :total="total" 
+      :totalPages="totalPages" 
+    />
 
     <!-- Detail Modal -->
     <Transition name="modal">
@@ -198,6 +205,7 @@
 import { ref, reactive, computed, onMounted } from 'vue'
 import { adminApi } from '../../api'
 import { useToast } from '../../composables/useToast'
+import Pagination from '../../components/Pagination.vue'
 
 const { toast } = useToast()
 
@@ -208,6 +216,12 @@ const deliverOrder = ref(null)
 const deliveryData = ref('')
 const delivering = ref(false)
 const filter = reactive({ status: '', type: '' })
+
+// Pagination
+const page = ref(1)
+const limit = ref(10)
+const total = ref(0)
+const totalPages = ref(0)
 
 const formatPrice = (price) => new Intl.NumberFormat('vi-VN').format(price) + 'đ'
 const formatDate = (date) => {
@@ -223,17 +237,31 @@ const filteredOrders = computed(() => orders.value)
 const loadOrders = async () => {
   loading.value = true
   try {
-    const params = { per_page: 100 }
+    const params = { 
+      page: page.value, 
+      limit: limit.value 
+    }
     if (filter.status) params.status = filter.status
     if (filter.type) params.type = filter.type
     const response = await adminApi.getOrders(params)
     orders.value = response.data.data
+    total.value = response.data.pagination.total
+    totalPages.value = response.data.pagination.totalPages
   } catch (error) {
     console.error('Failed to load orders:', error)
+    toast.error('Lỗi khi tải đơn hàng')
   } finally {
     loading.value = false
   }
 }
+
+// Watch for changes
+import { watch } from 'vue'
+watch([page, limit], loadOrders)
+watch([() => filter.status, () => filter.type], () => {
+  page.value = 1
+  loadOrders()
+})
 
 const updateStatus = async (order) => {
   try {
@@ -310,6 +338,59 @@ onMounted(loadOrders)
 
 .order-item-row {
   font-size: 0.9rem;
+}
+
+.status-select {
+  width: 140px;
+  padding: 0.35rem 0.5rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  cursor: pointer;
+  transition: all 0.2s;
+  color: white;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='white' viewBox='0 0 16 16'%3E%3Cpath d='M7.247 11.14 2.451 5.658C1.885 5.013 2.345 4 3.204 4h9.592a1 1 0 0 1 .753 1.659l-4.796 5.48a1 1 0 0 1-1.506 0z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 0.6rem center;
+  padding-right: 1.8rem;
+}
+
+.status-pending {
+  background-color: #64748b; /* Slate */
+}
+
+.status-waiting {
+  background-color: #f59e0b; /* Amber/Orange */
+  color: #000;
+}
+
+.status-processing {
+  background-color: #3b82f6; /* Blue */
+}
+
+.status-delivered {
+  background-color: #10b981; /* Emerald */
+}
+
+.status-completed {
+  background-color: #059669; /* Darker Emerald */
+}
+
+.status-cancelled {
+  background-color: #ef4444; /* Red */
+}
+
+.status-select:hover {
+  filter: brightness(1.1);
+  transform: scale(1.02);
+}
+
+.status-select option {
+  background-color: var(--bg-secondary);
+  color: var(--text);
+  padding: 10px;
 }
 
 .row-preorder {

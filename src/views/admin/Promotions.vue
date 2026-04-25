@@ -52,6 +52,13 @@
       </tbody>
     </table>
 
+    <Pagination 
+      v-model:page="page" 
+      v-model:limit="limit" 
+      :total="total" 
+      :totalPages="totalPages" 
+    />
+
     <!-- Modal -->
     <Transition name="modal">
       <div v-if="showModal" class="modal-overlay" @click.self="closeModal">
@@ -146,9 +153,10 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, onMounted, watch } from 'vue'
 import { adminApi } from '../../api'
 import { useToast } from '../../composables/useToast'
+import Pagination from '../../components/Pagination.vue'
 
 const { toast, confirm } = useToast()
 
@@ -158,6 +166,12 @@ const showModal = ref(false)
 const editing = ref(null)
 const promotions = ref([])
 const products = ref([])
+
+// Pagination
+const page = ref(1)
+const limit = ref(10)
+const total = ref(0)
+const totalPages = ref(0)
 
 const form = reactive({
   code: '',
@@ -179,17 +193,26 @@ const formatDate = (date) => new Date(date).toLocaleDateString('vi-VN')
 const loadPromotions = async () => {
   loading.value = true
   try {
-    const response = await adminApi.getPromotions({ per_page: 50 })
+    const response = await adminApi.getPromotions({ 
+      page: page.value, 
+      limit: limit.value 
+    })
     promotions.value = (response.data.data || []).map(promo => ({
       ...promo,
       applies_to_product_ids: parseProductIds(promo.applies_to_product_ids),
     }))
+    total.value = response.data.pagination.total
+    totalPages.value = response.data.pagination.totalPages
   } catch (error) {
     console.error('Failed to load promotions:', error)
+    toast.error('Lỗi khi tải khuyến mãi')
   } finally {
     loading.value = false
   }
 }
+
+// Watch for changes
+watch([page, limit], loadPromotions)
 
 const parseProductIds = (raw) => {
   if (!raw) return []
