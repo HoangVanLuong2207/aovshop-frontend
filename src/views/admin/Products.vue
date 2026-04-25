@@ -298,6 +298,13 @@
               Kích hoạt nếu hàng chưa về. User sẽ đặt điền thông tin đặt và chờ admin giao thủ công khi hàng về.
             </small>
           </div>
+          <div v-if="form.is_preorder" class="form-group mt-2">
+            <label class="form-label">Placeholder thông tin đặt hàng (Tùy chỉnh)</label>
+            <input v-model="form.preorder_placeholder" type="text" class="form-input" placeholder="Ví dụ: Nhập ID Game | Server | Tên nhân vật" />
+            <small class="text-muted d-block mt-1">
+              Dòng chữ này sẽ hiện trong ô nhập liệu lúc khách thanh toán.
+            </small>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="closeModal">Hủy</button>
@@ -363,6 +370,7 @@ const form = reactive({
   images: [],
   active: true,
   is_preorder: false,
+  preorder_placeholder: '',
 })
 
 // Gallery image management
@@ -707,6 +715,7 @@ const openModal = (product = null) => {
       images: (product.images || []).sort((a, b) => a.sortOrder - b.sortOrder).map(img => img.url),
       active: product.active,
       is_preorder: product.isPreorder || false,
+      preorder_placeholder: product.preorderPlaceholder || '',
     })
   } else {
     Object.assign(form, {
@@ -720,6 +729,7 @@ const openModal = (product = null) => {
       images: [],
       active: true,
       is_preorder: false,
+      preorder_placeholder: '',
     })
   }
   newImageUrl.value = ''
@@ -758,6 +768,7 @@ const saveProduct = async () => {
       images: form.images,
       active: form.active,
       is_preorder: form.is_preorder,
+      preorder_placeholder: form.preorder_placeholder,
     }
 
     if (editing.value) {

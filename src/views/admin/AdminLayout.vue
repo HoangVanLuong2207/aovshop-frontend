@@ -53,6 +53,15 @@
       </nav>
 
       <div class="sidebar-footer">
+        <button 
+          v-if="push.isSupported"
+          class="btn btn-secondary btn-sm" 
+          style="width: 100%; margin-bottom: 8px;" 
+          :class="{ 'btn-success': push.isSubscribed }"
+          @click="toggleNotifications"
+        >
+          {{ push.isSubscribed ? '🔔 Đã bật thông báo' : '🔕 Bật thông báo' }}
+        </button>
         <button class="btn btn-secondary btn-sm" style="width: 100%; margin-bottom: 8px;" @click="themeStore.toggle">
           {{ themeStore.isDark ? '☀️ Light Mode' : '🌙 Dark Mode' }}
         </button>
@@ -76,15 +85,19 @@
 import { ref } from 'vue'
 import { useThemeStore } from '../../stores/theme'
 import { useSettingsStore } from '../../stores/settings'
+import { usePush } from '../../composables/usePush'
 
 const themeStore = useThemeStore()
 const settingsStore = useSettingsStore()
+const push = usePush()
 const isSidebarOpen = ref(false)
 
 import { onMounted, onUnmounted } from 'vue'
 
-onMounted(() => {
+onMounted(async () => {
   document.body.classList.add('admin-mode')
+  await push.registerServiceWorker()
+  await push.checkSubscription()
 })
 
 onUnmounted(() => {
@@ -97,6 +110,23 @@ const toggleSidebar = () => {
 
 const closeSidebar = () => {
   isSidebarOpen.value = false
+}
+
+const toggleNotifications = async () => {
+  if (push.isSubscribed.value) {
+    await push.unsubscribe()
+  } else {
+    const success = await push.subscribe(true)
+    if (success) {
+      alert('Đã bật thông báo thành công!')
+    } else {
+      if (!push.isSupported.value) {
+        alert('Trình duyệt của bạn không hỗ trợ thông báo (hoặc bạn đang không sử dụng HTTPS/Localhost).')
+      } else {
+        alert('Không thể bật thông báo. Vui lòng kiểm tra quyền trình duyệt hoặc cấu hình server.')
+      }
+    }
+  }
 }
 </script>
 

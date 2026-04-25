@@ -70,7 +70,7 @@
               <span class="preorder-icon">⏳</span>
               <div>
                 <h3>Thông tin liên hệ <span class="required-star">*</span></h3>
-                <p class="preorder-hint">Sản phẩm đặt trước — hãy điền ID game, server, tên nhân vật để admin chuẩn bị hàng</p>
+                <p class="preorder-hint">Sản phẩm đặt trước — vui lòng cung cấp thông tin cần thiết bên dưới để shop xử lý đơn hàng của bạn</p>
               </div>
             </div>
             <h3 v-else>Thông tin liên hệ <span class="required-star">*</span></h3>
@@ -80,7 +80,7 @@
               :class="{ 'preorder-input': hasPreorderItems, 'input-error': contactInfoError }"
               rows="4" 
               :placeholder="hasPreorderItems 
-                ? 'Ví dụ: Số điện thoại zalo, link fb,... mình liên lạc lại để thông báo khi thể lệ ra mắt'
+                ? preorderPlaceholder
                 : 'Số điện thoại, tên, hoặc thông tin liên lạc khác'"
               required
             ></textarea>
@@ -161,6 +161,18 @@ const processing = ref(false)
 const hasPreorderItems = computed(() =>
   cartStore.items.some(item => item.is_preorder)
 )
+
+const preorderPlaceholder = computed(() => {
+  const placeholders = cartStore.items
+    .filter(item => item.is_preorder && item.preorder_placeholder)
+    .map(item => item.preorder_placeholder);
+  
+  if (placeholders.length > 0) {
+    // Unique placeholders only
+    return [...new Set(placeholders)].join(', ');
+  }
+  return 'Ví dụ: Số điện thoại zalo, link fb,... mình liên lạc lại để thông báo khi thể lệ ra mắt';
+})
 
 const total = computed(() => cartStore.subtotal - discount.value)
 

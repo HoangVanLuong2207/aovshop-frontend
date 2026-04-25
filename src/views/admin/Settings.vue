@@ -68,9 +68,12 @@
           </div>
         </div>
 
-        <div class="form-actions">
+        <div class="form-actions" style="display: flex; gap: 10px;">
           <button type="submit" class="btn btn-primary" :disabled="saving">
             {{ saving ? 'Đang lưu...' : '💾 Lưu thông báo' }}
+          </button>
+          <button type="button" class="btn btn-secondary" @click="testPush">
+            🔔 Gửi thông báo thử (Push)
           </button>
         </div>
       </form>
@@ -307,9 +310,11 @@ import { ref, onMounted } from 'vue'
 import api from '../../api'
 import { useToast } from '../../composables/useToast'
 import { useSettingsStore } from '../../stores/settings'
+import { usePush } from '../../composables/usePush'
 
 const { toast } = useToast()
 const settingsStore = useSettingsStore()
+const push = usePush()
 
 const settings = ref({
   notification_enabled: false,
@@ -327,6 +332,10 @@ const settings = ref({
   contact_messenger: '',
   contact_hotline: '',
   api_auth_token: '',
+  push_enabled: true,
+  vapid_public_key: '',
+  vapid_private_key: '',
+  vapid_subject: '',
 })
 
 const showToken = ref(false)
@@ -367,7 +376,7 @@ const loadSettings = async () => {
     Object.keys(settings.value).forEach(key => {
       if (data[key] !== undefined) {
         // Handle special type conversions
-        if (key === 'notification_enabled') {
+        if (key === 'notification_enabled' || key === 'push_enabled') {
           filteredData[key] = data[key] === 'true' || data[key] === true
         } else {
           filteredData[key] = data[key]
@@ -407,7 +416,7 @@ const saveSettings = async () => {
       let val = settings.value[key]
       
       // Convert boolean to string for backend persistence
-      if (key === 'notification_enabled') {
+      if (key === 'notification_enabled' || key === 'push_enabled') {
         val = val ? 'true' : 'false'
       }
       
@@ -448,6 +457,21 @@ const removeBanner = (index) => {
 const copyWebhook = () => {
   navigator.clipboard.writeText(webhookUrl)
   toast.success('Đã copy Webhook URL!')
+}
+
+const testPush = async () => {
+  try {
+    const success = await push.subscribe(true)
+    if (!success) {
+      toast.error('Vui lòng bật thông báo trình duyệt trước')
+      return
+    }
+
+    await api.post('/admin/test-push')
+    toast.success('Đã gửi thông báo thử!')
+  } catch (error) {
+    toast.error('Lỗi khi gửi thông báo thử')
+  }
 }
 
 // Rich text editor functions
