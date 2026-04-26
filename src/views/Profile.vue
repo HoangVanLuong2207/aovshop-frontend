@@ -80,6 +80,7 @@ import { ref, reactive, onMounted } from 'vue'
 import { useAuthStore } from '../stores/auth'
 import api, { authApi } from '../api'
 import { useToast } from '../composables/useToast'
+import { storage } from '../utils/storage'
 
 const { toast } = useToast()
 
@@ -105,7 +106,7 @@ onMounted(async () => {
   try {
     const response = await authApi.profile()
     authStore.user = response.data.user
-    localStorage.setItem('user', JSON.stringify(response.data.user))
+    storage.set('user', response.data.user)
   } catch (err) {
     console.error('Failed to fetch profile:', err)
   }
@@ -121,7 +122,7 @@ const updateProfile = async () => {
   try {
     const response = await authApi.updateProfile(profile)
     authStore.user = response.data.user
-    localStorage.setItem('user', JSON.stringify(response.data.user))
+    storage.set('user', response.data.user)
     toast.success('Cập nhật thành công!')
   } catch (error) {
     toast.error(error.response?.data?.message || 'Cập nhật thất bại')
