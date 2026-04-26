@@ -1,4 +1,5 @@
 import axios from 'axios'
+import { storage } from '../utils/storage'
 
 const api = axios.create({
   baseURL: import.meta.env.VITE_API_URL || 'http://localhost:3000/api',
@@ -12,7 +13,7 @@ const api = axios.create({
 // Request interceptor to add auth token
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token')
+    const token = storage.get('token')
     if (token) {
       config.headers.Authorization = `Bearer ${token}`
     }
@@ -37,8 +38,8 @@ api.interceptors.response.use(
       // Don't redirect if already on login/register page (avoid losing form data)
       const currentPath = window.location.pathname
       if (currentPath !== '/login' && currentPath !== '/register') {
-        localStorage.removeItem('token')
-        localStorage.removeItem('user')
+        storage.remove('token')
+        storage.remove('user')
         window.location.href = '/login'
       }
     }
