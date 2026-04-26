@@ -32,12 +32,27 @@ app.use('/uploads', createProxyMiddleware({
     changeOrigin: true,
 }));
 
-// Serve static files from dist folder
-app.use(express.static(path.join(__dirname, 'dist')));
+// Serve static files from dist folder with correct charset
+app.use(express.static(path.join(__dirname, 'dist'), {
+    setHeaders: (res, filePath) => {
+        if (filePath.endsWith('.html')) {
+            res.setHeader('Content-Type', 'text/html; charset=UTF-8');
+        }
+        if (filePath.endsWith('.js')) {
+            res.setHeader('Content-Type', 'application/javascript; charset=UTF-8');
+        }
+        if (filePath.endsWith('.css')) {
+            res.setHeader('Content-Type', 'text/css; charset=UTF-8');
+        }
+        // Security headers for in-app browsers (Zalo, Messenger)
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+    }
+}));
 
 // Handle SPA routing - redirect all routes to index.html
 // IMPORTANT: This must be AFTER the /api proxy routes
 app.get('*', (req, res) => {
+    res.setHeader('Content-Type', 'text/html; charset=UTF-8');
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
 });
 

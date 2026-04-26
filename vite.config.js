@@ -4,6 +4,16 @@ import vue from '@vitejs/plugin-vue'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [vue()],
+  build: {
+    // Force UTF-8 encoding on all build outputs (fixes garbled Vietnamese on Render)
+    charset: 'utf8',
+    // Ensure rollup doesn't mishandle unicode
+    rollupOptions: {
+      output: {
+        compact: false,
+      }
+    }
+  },
   server: {
     host: true,
     port: 5173,
