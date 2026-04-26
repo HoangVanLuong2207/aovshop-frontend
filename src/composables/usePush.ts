@@ -1,8 +1,8 @@
 import { ref } from 'vue';
 import api from '../api';
 
-const isSupported = ref('serviceWorker' in navigator && 'PushManager' in window);
-const permission = ref(Notification.permission);
+const isSupported = ref(typeof window !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window);
+const permission = ref(typeof Notification !== 'undefined' ? Notification.permission : 'default');
 const isSubscribed = ref(false);
 
 export function usePush() {
