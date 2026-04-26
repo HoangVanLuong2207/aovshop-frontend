@@ -23,7 +23,15 @@ api.interceptors.request.use(
 
 // Response interceptor to handle errors
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Check if the response is actually HTML (which means routing failed)
+    const contentType = response.headers['content-type']
+    if (contentType && contentType.includes('text/html')) {
+      console.error('API returned HTML instead of JSON. Check your server routing/proxy settings.')
+      return Promise.reject(new Error('Server configuration error: API returned HTML.'))
+    }
+    return response
+  },
   (error) => {
     if (error.response?.status === 401) {
       // Don't redirect if already on login/register page (avoid losing form data)

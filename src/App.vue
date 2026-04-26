@@ -48,6 +48,7 @@ import Footer from './components/Footer.vue'
 import { useAuthStore } from './stores/auth'
 import { useSettingsStore } from './stores/settings'
 import api from './api'
+import { storage } from './utils/storage'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -60,13 +61,13 @@ const showNotification = ref(true)
 const DISMISS_DURATION = 3 * 60 * 60 * 1000 // 3 hours in ms
 
 const checkDismissed = () => {
-  const dismissedAt = localStorage.getItem('notification_dismissed_at')
+  const dismissedAt = storage.get('notification_dismissed_at')
   if (dismissedAt) {
     const elapsed = Date.now() - parseInt(dismissedAt)
     if (elapsed < DISMISS_DURATION) {
       showNotification.value = false
     } else {
-      localStorage.removeItem('notification_dismissed_at')
+      storage.remove('notification_dismissed_at')
     }
   }
 }
@@ -79,7 +80,7 @@ const closeNotification = () => {
 // Close and don't show for 3 hours
 const dismissFor3Hours = () => {
   showNotification.value = false
-  localStorage.setItem('notification_dismissed_at', Date.now().toString())
+  storage.set('notification_dismissed_at', Date.now().toString())
 }
 
 const fetchNotification = async () => {
