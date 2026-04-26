@@ -1,17 +1,14 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 
-import legacy from '@vitejs/plugin-legacy'
-
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [
     vue(),
-    legacy({
-      targets: ['defaults', 'not IE 11'],
-    }),
   ],
   build: {
+    // Target ES2015 for broad compatibility with older WebViews (Zalo, Messenger)
+    target: 'es2015',
     // Force UTF-8 encoding on all build outputs (fixes garbled Vietnamese on Render)
     charset: 'utf8',
     // Ensure rollup doesn't mishandle unicode
