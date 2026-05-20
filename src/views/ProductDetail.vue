@@ -77,7 +77,9 @@
               <button @click="quantity = Math.max(1, quantity - 1)">-</button>
               <input
                 type="number"
-                v-model.number="quantity"
+                :value="quantity"
+                @input="onQuantityInput"
+                @blur="onQuantityBlur"
                 min="1"
                 :max="isPreorder ? 9999 : product.stock"
               />
@@ -136,6 +138,35 @@ const authStore = useAuthStore()
 const loading = ref(true)
 const product = ref(null)
 const quantity = ref(1)
+
+const onQuantityInput = (event) => {
+  const val = event.target.value
+  if (val === '') return
+  let num = parseInt(val, 10)
+  if (isNaN(num) || num < 1) {
+    num = 1
+  }
+  const maxStock = isPreorder.value ? 9999 : (product.value?.stock || 9999)
+  if (num > maxStock) {
+    num = maxStock
+    event.target.value = maxStock
+  }
+  quantity.value = num
+}
+
+const onQuantityBlur = (event) => {
+  const val = event.target.value
+  let num = parseInt(val, 10)
+  if (isNaN(num) || num < 1) {
+    num = 1
+  }
+  const maxStock = isPreorder.value ? 9999 : (product.value?.stock || 9999)
+  if (num > maxStock) {
+    num = maxStock
+  }
+  event.target.value = num
+  quantity.value = num
+}
 const activeImageIndex = ref(0)
 
 // Combine main image + gallery images
@@ -525,6 +556,16 @@ onMounted(async () => {
   text-align: center;
   color: var(--text);
   font-size: 1rem;
+}
+
+.quantity-control input::-webkit-outer-spin-button,
+.quantity-control input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.quantity-control input[type=number] {
+  -moz-appearance: textfield;
 }
 
 .text-success { color: var(--success); }

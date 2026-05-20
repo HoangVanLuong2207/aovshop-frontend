@@ -24,7 +24,15 @@
               <p>{{ formatPrice(item.sale_price || item.price) }} × {{ item.quantity }}</p>
               <div class="item-qty-control">
                 <button @click="updateQuantity(item.id, item.quantity - 1, item.stock)">-</button>
-                <span>{{ item.quantity }}</span>
+                <input 
+                  type="number"
+                  :value="item.quantity"
+                  @input="onQuantityInput(item, $event)"
+                  @blur="onQuantityBlur(item, $event)"
+                  min="1"
+                  :max="item.is_preorder ? 9999 : item.stock"
+                  class="quantity-input"
+                />
                 <button
                   @click="updateQuantity(item.id, item.quantity + 1, item.stock)"
                   :disabled="!item.is_preorder && item.quantity >= item.stock"
@@ -229,6 +237,35 @@ const updateQuantity = (productId, quantity, stock) => {
   cartStore.updateQuantity(productId, quantity, stock)
 }
 
+const onQuantityInput = (item, event) => {
+  const val = event.target.value
+  if (val === '') return
+  let num = parseInt(val, 10)
+  if (isNaN(num) || num < 1) {
+    num = 1
+  }
+  const maxStock = item.is_preorder ? 9999 : (item.stock || 9999)
+  if (num > maxStock) {
+    num = maxStock
+    event.target.value = maxStock
+  }
+  cartStore.updateQuantity(item.id, num, item.stock)
+}
+
+const onQuantityBlur = (item, event) => {
+  const val = event.target.value
+  let num = parseInt(val, 10)
+  if (isNaN(num) || num < 1) {
+    num = 1
+  }
+  const maxStock = item.is_preorder ? 9999 : (item.stock || 9999)
+  if (num > maxStock) {
+    num = maxStock
+  }
+  event.target.value = num
+  cartStore.updateQuantity(item.id, num, item.stock)
+}
+
 const placeOrder = async () => {
   contactInfoError.value = ''
 
@@ -373,9 +410,24 @@ const placeOrder = async () => {
   background: var(--bg-secondary);
 }
 
-.item-qty-control span {
-  min-width: 30px;
+.item-qty-control input {
+  width: 50px;
+  height: 30px;
+  border: none;
+  background: none;
   text-align: center;
+  color: var(--text);
+  font-size: 0.95rem;
+}
+
+.item-qty-control input::-webkit-outer-spin-button,
+.item-qty-control input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.item-qty-control input[type=number] {
+  -moz-appearance: textfield;
 }
 
 .checkout-item .item-total {
