@@ -11,7 +11,10 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 
 // Use an environment variable for the backend URL, with a fallback
-const BACKEND_URL = process.env.BACKEND_URL || 'https://aovshop-backend.onrender.com';
+// Strip trailing /api or /api/ if present - env var may include it
+const RAW_BACKEND_URL = process.env.BACKEND_URL || 'https://aovshop-backend-qof4.onrender.com';
+const BACKEND_URL = RAW_BACKEND_URL.replace(/\/api\/?$/, '');
+console.log(`[Config] BACKEND_URL resolved: ${BACKEND_URL} (from env: ${RAW_BACKEND_URL})`);
 
 // Bot User-Agent patterns (Facebook, Zalo, Telegram, Twitter, Discord, etc.)
 const BOT_USER_AGENTS = /facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|LinkedInBot|WhatsApp|Discordbot|ZaloBot|Zalo|bot|crawl|spider|preview/i;
