@@ -17,10 +17,24 @@ const BACKEND_URL = process.env.BACKEND_URL || 'https://aovshop-backend.onrender
 const BOT_USER_AGENTS = /facebookexternalhit|Facebot|Twitterbot|TelegramBot|Slackbot|LinkedInBot|WhatsApp|Discordbot|ZaloBot|Zalo|bot|crawl|spider|preview/i;
 
 // Resolve product image to absolute URL
-function resolveImageUrl(imagePath) {
-    if (!imagePath) return 'https://shopregaov.shop/images/hero-bg.png';
-    if (imagePath.startsWith('http')) return imagePath;
-    return `${BACKEND_URL}/uploads/${imagePath}`;
+// Accepts the full product object to check gallery images as fallback
+function resolveProductImage(product) {
+    // 1. Try main image field
+    if (product.image) {
+        if (product.image.startsWith('http')) return product.image;
+        return `${BACKEND_URL}/uploads/${product.image}`;
+    }
+    // 2. Fallback: first gallery image
+    if (product.images && product.images.length > 0) {
+        const firstImg = product.images[0];
+        const url = typeof firstImg === 'string' ? firstImg : firstImg.url;
+        if (url) {
+            if (url.startsWith('http')) return url;
+            return `${BACKEND_URL}/uploads/${url}`;
+        }
+    }
+    // 3. Default fallback
+    return 'https://shopregaov.shop/images/hero-bg.png';
 }
 
 // Escape HTML special characters for safe injection into meta tags
@@ -33,23 +47,50 @@ function escapeHtml(str) {
         .replace(/>/g, '&gt;');
 }
 
-// Fetch product data from backend API
+// Fetch product data from backend API with retry for cold start resilience
 async function fetchProduct(productId) {
-    try {
-        const response = await fetch(`${BACKEND_URL}/api/shop/products/${productId}`);
-        if (!response.ok) return null;
-        return await response.json();
-    } catch (err) {
-        console.error(`[OG] Failed to fetch product ${productId}:`, err.message);
-        return null;
+    const maxRetries = 2;
+    const timeoutMs = 8000; // 8s per attempt
+
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        try {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+            const response = await fetch(
+                `${BACKEND_URL}/api/shop/products/${productId}`,
+                { signal: controller.signal }
+            );
+            clearTimeout(timer);
+
+            if (!response.ok) {
+                console.error(`[OG] Backend returned ${response.status} for product ${productId}`);
+                return null;
+            }
+
+            const data = await response.json();
+            console.log(`[OG] Fetched product #${productId}: image=${data.image || 'null'}, images=${(data.images || []).length}, desc=${data.description ? 'yes' : 'no'}`);
+            return data;
+        } catch (err) {
+            console.error(`[OG] Attempt ${attempt}/${maxRetries} failed for product ${productId}: ${err.message}`);
+            if (attempt < maxRetries) {
+                // Wait before retry (1s, then 2s)
+                await new Promise(r => setTimeout(r, attempt * 1000));
+            }
+        }
     }
+    return null;
 }
 
 // Inject dynamic OG meta tags into HTML
 function injectOgTags(html, product) {
     const title = escapeHtml(product.name) + ' - AOV Shop';
-    const description = escapeHtml(product.description || `Mua ${product.name} tại AOV Shop - Uy tín, tự động 100%`);
-    const image = resolveImageUrl(product.image);
+    // Use product description, strip to 200 chars for meta
+    const rawDesc = product.description
+        ? product.description.replace(/<[^>]*>/g, '').substring(0, 200)
+        : `Mua ${product.name} tại AOV Shop - Uy tín, tự động 100%`;
+    const description = escapeHtml(rawDesc);
+    const image = resolveProductImage(product);
     const url = `https://shopregaov.shop/products/${product.id}`;
     const price = product.sale_price || product.price;
 
@@ -145,16 +186,20 @@ app.get('*', async (req, res) => {
     // If a bot is crawling a product page, inject dynamic OG tags
     if (productMatch && BOT_USER_AGENTS.test(userAgent)) {
         const productId = productMatch[1];
+        console.log(`[OG] Bot detected: "${userAgent.substring(0, 80)}" requesting product #${productId}`);
         try {
             const product = await fetchProduct(productId);
             if (product) {
                 let html = fs.readFileSync(path.join(__dirname, 'dist', 'index.html'), 'utf-8');
                 html = injectOgTags(html, product);
-                console.log(`[OG] Served dynamic meta for product #${productId} to ${userAgent.substring(0, 50)}`);
+                const ogImage = resolveProductImage(product);
+                console.log(`[OG] ✅ Served dynamic meta for product #${productId}: image=${ogImage}, desc=${product.description ? 'custom' : 'fallback'}`);
                 return res.send(html);
+            } else {
+                console.error(`[OG] ❌ Failed to fetch product #${productId} - serving static OG tags`);
             }
         } catch (err) {
-            console.error(`[OG] Error serving dynamic meta for product #${productId}:`, err.message);
+            console.error(`[OG] ❌ Error serving dynamic meta for product #${productId}:`, err.message);
         }
     }
 
