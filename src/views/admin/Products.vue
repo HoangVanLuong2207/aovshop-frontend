@@ -325,6 +325,13 @@
               Dòng chữ này sẽ hiện trong ô nhập liệu lúc khách thanh toán.
             </small>
           </div>
+          <div class="form-group">
+            <label class="form-label">🔒 Giới hạn mua / ngày / tài khoản</label>
+            <input v-model.number="form.daily_buy_limit" type="number" class="form-input" min="0" placeholder="0 = Không giới hạn" />
+            <small class="text-muted d-block mt-1">
+              Số lượng tối đa mỗi tài khoản được mua sản phẩm này trong 1 ngày. Để 0 hoặc trống = không giới hạn.
+            </small>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="closeModal">Hủy</button>
@@ -385,6 +392,7 @@ const form = reactive({
   active: true,
   is_preorder: false,
   preorder_placeholder: '',
+  daily_buy_limit: null,
 })
 
 // Gallery image management
@@ -752,6 +760,7 @@ const openModal = (product = null) => {
       active: product.active,
       is_preorder: product.isPreorder || false,
       preorder_placeholder: product.preorderPlaceholder || '',
+      daily_buy_limit: product.dailyBuyLimit || product.daily_buy_limit || null,
     })
   } else {
     Object.assign(form, {
@@ -766,6 +775,7 @@ const openModal = (product = null) => {
       active: true,
       is_preorder: false,
       preorder_placeholder: '',
+      daily_buy_limit: null,
     })
   }
   newImageUrl.value = ''
@@ -805,6 +815,7 @@ const saveProduct = async () => {
       active: form.active,
       is_preorder: form.is_preorder,
       preorder_placeholder: form.preorder_placeholder,
+      daily_buy_limit: form.daily_buy_limit || null,
     }
 
     if (editing.value) {

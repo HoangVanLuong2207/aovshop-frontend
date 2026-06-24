@@ -43,6 +43,9 @@
             <div class="item-total">
               {{ formatPrice((item.sale_price || item.price) * item.quantity) }}
             </div>
+            <div v-if="item.daily_buy_limit" class="item-daily-limit">
+              🔒 Max {{ item.daily_buy_limit }}/ngày
+            </div>
           </div>
 
           <!-- Promo Code -->
@@ -552,5 +555,16 @@ const placeOrder = async () => {
 .input-error {
   border-color: var(--danger) !important;
   box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12) !important;
+}
+
+.item-daily-limit {
+  font-size: 0.72rem;
+  color: #b45309;
+  background: rgba(245, 158, 11, 0.1);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  padding: 2px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  align-self: center;
 }
 </style>

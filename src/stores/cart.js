@@ -32,6 +32,7 @@ export const useCartStore = defineStore('cart', {
                     existingItem.stock = safeStock
                 }
                 existingItem.is_preorder = isPreorder
+                existingItem.daily_buy_limit = product.daily_buy_limit || null
             } else {
                 const safeInitialQuantity = isPreorder ? Math.max(1, quantity) : Math.max(1, Math.min(quantity, availableStock || 1))
                 this.items.push({
@@ -44,6 +45,7 @@ export const useCartStore = defineStore('cart', {
                     stock: isPreorder ? 0 : (availableStock || 1),
                     is_preorder: isPreorder,
                     preorder_placeholder: product.preorder_placeholder,
+                    daily_buy_limit: product.daily_buy_limit || null,
                 })
             }
 

@@ -66,6 +66,14 @@
             </div>
           </div>
 
+          <div v-if="product.daily_buy_limit" class="daily-limit-notice">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
+              <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+              <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+            </svg>
+            <span>Giới hạn: Tối đa <strong>{{ product.daily_buy_limit }}</strong> sản phẩm / ngày / tài khoản</span>
+          </div>
+
           <div class="product-description" v-if="product.description">
             <h3>Mô tả</h3>
             <p>{{ product.description }}</p>
@@ -585,5 +593,21 @@ onMounted(async () => {
   font-size: 0.9rem;
   padding: 0.5rem 1rem;
   border-radius: var(--radius-sm);
+}
+
+.daily-limit-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0.65rem 1rem;
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.04));
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  border-radius: var(--radius-sm);
+  color: #b45309;
+  font-size: 0.88rem;
+}
+
+.daily-limit-notice strong {
+  color: #92400e;
 }
 </style>
