@@ -187,6 +187,44 @@
       </form>
     </div>
 
+    <!-- Email (Brevo) Section -->
+    <div class="settings-section">
+      <h2>📧 Email (Brevo)</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+        Cấu hình gửi email xác thực tài khoản và quên mật khẩu. Đăng ký miễn phí tại <a href="https://app.brevo.com" target="_blank">app.brevo.com</a>.
+      </p>
+      
+      <form @submit.prevent="saveSettings" class="settings-form">
+        <div class="form-group">
+          <label>Brevo API Key</label>
+          <input 
+            type="password" 
+            v-model="settings.brevo_api_key" 
+            class="form-input"
+            placeholder="xkeysib-..."
+          />
+          <small>Lấy từ Brevo → SMTP & API → Generate API Key</small>
+        </div>
+
+        <div class="form-group">
+          <label>Email người gửi</label>
+          <input 
+            type="email" 
+            v-model="settings.brevo_sender_email" 
+            class="form-input"
+            placeholder="your-email@gmail.com"
+          />
+          <small>Email đã xác minh trên Brevo Senders. Nếu để trống, email sẽ không gửi được.</small>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" :disabled="saving">
+            {{ saving ? 'Đang lưu...' : '💾 Lưu Email' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
     </div>
 
     <div class="settings-column">
@@ -375,6 +413,8 @@ const settings = ref({
   vapid_subject: '',
   telegram_bot_token: '',
   telegram_chat_id: '',
+  brevo_api_key: '',
+  brevo_sender_email: '',
 })
 
 const showToken = ref(false)
