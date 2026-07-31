@@ -6,8 +6,8 @@
           <h1 class="page-title">📋 Lịch sử đơn hàng</h1>
           <p class="page-subtitle">Xem và xuất lịch sử mua hàng</p>
         </div>
-        <button class="btn btn-secondary" @click="exportOrders" :disabled="exporting">
-          {{ exporting ? 'Đang xuất...' : '📥 Xuất file' }}
+        <button class="btn btn-secondary" @click="exportOrders" :disabled="exporting || selectedOrderIds.length === 0">
+          {{ exporting ? 'Đang xuất...' : `📥 Xuất file (${selectedOrderIds.length})` }}
         </button>
       </div>
 
@@ -21,8 +21,20 @@
       </div>
 
       <div v-else class="orders-list">
+        <div class="order-selection-actions">
+          <label class="select-all-orders">
+            <input type="checkbox" :checked="areAllOrdersSelected" @change="toggleSelectAllOrders">
+            Chọn tất cả đơn hàng ở trang này
+          </label>
+          <span v-if="selectedOrderIds.length > 0">Đã chọn {{ selectedOrderIds.length }} đơn hàng</span>
+        </div>
+
         <div v-for="order in orders" :key="order.id" class="order-card">
           <div class="order-header">
+            <label class="order-select" :title="`Chọn đơn hàng #${order.id}`">
+              <input v-model="selectedOrderIds" type="checkbox" :value="order.id">
+              <span class="sr-only">Chọn đơn hàng #{{ order.id }}</span>
+            </label>
             <div>
               <h3>Đơn hàng #{{ order.id }}</h3>
               <p class="order-date">{{ formatDate(order.created_at) }}</p>
@@ -101,7 +113,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted } from 'vue'
 import { orderApi } from '../api'
 import { useToast } from '../composables/useToast'
 
@@ -110,6 +122,7 @@ const { toast } = useToast()
 const loading = ref(true)
 const exporting = ref(false)
 const orders = ref([])
+const selectedOrderIds = ref([])
 const pagination = reactive({
   currentPage: 1,
   lastPage: 1,
@@ -172,6 +185,19 @@ const changePage = (page) => {
   loadOrders()
 }
 
+const areAllOrdersSelected = computed(() =>
+  orders.value.length > 0 && orders.value.every(order => selectedOrderIds.value.includes(order.id))
+)
+
+const toggleSelectAllOrders = (event) => {
+  const pageOrderIds = orders.value.map(order => order.id)
+  if (event.target.checked) {
+    selectedOrderIds.value = [...new Set([...selectedOrderIds.value, ...pageOrderIds])]
+  } else {
+    selectedOrderIds.value = selectedOrderIds.value.filter(id => !pageOrderIds.includes(id))
+  }
+}
+
 const copyToClipboard = (text) => {
   navigator.clipboard.writeText(text).then(() => {
     toast.success('Đã sao chép tài khoản!')
@@ -179,9 +205,14 @@ const copyToClipboard = (text) => {
 }
 
 const exportOrders = async () => {
+  if (selectedOrderIds.value.length === 0) {
+    toast.error('Vui lòng chọn ít nhất một đơn hàng để xuất')
+    return
+  }
+
   exporting.value = true
   try {
-    const response = await orderApi.exportOrders()
+    const response = await orderApi.exportOrders(selectedOrderIds.value)
     const data = response.data
 
     // Create text content theo format yêu cầu
@@ -225,6 +256,44 @@ onMounted(loadOrders)
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.order-selection-actions {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  font-size: 0.9rem;
+}
+
+.select-all-orders,
+.order-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.order-select input {
+  width: 1.1rem;
+  height: 1.1rem;
+  cursor: pointer;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .order-card {

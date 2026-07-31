@@ -91,9 +91,17 @@
               <label>Cộng số dư (nhập số dương để cộng, âm để trừ)</label>
               <input v-model.number="editForm.addBalance" type="number" class="form-input" placeholder="0" />
             </div>
+            <div class="form-group">
+              <label>Đặt lại mật khẩu</label>
+              <input v-model="newPassword" type="password" class="form-input" minlength="6" placeholder="Ít nhất 6 ký tự" />
+              <small class="form-hint">Chỉ nhập khi cần đổi mật khẩu cho người dùng này.</small>
+            </div>
           </div>
           <div class="modal-footer">
             <button class="btn btn-secondary" @click="closeModal">Hủy</button>
+            <button class="btn btn-warning" @click="resetPassword" :disabled="resettingPassword || newPassword.length < 6">
+              {{ resettingPassword ? 'Đang đặt lại...' : 'Đặt lại mật khẩu' }}
+            </button>
             <button class="btn btn-primary" @click="saveUser" :disabled="saving">
               {{ saving ? 'Đang lưu...' : 'Lưu' }}
             </button>
@@ -163,6 +171,10 @@ const loading = ref(true)
 const search = ref('')
 const showModal = ref(false)
 const saving = ref(false)
+const editingUser = ref(null)
+const editForm = ref({})
+const newPassword = ref('')
+const resettingPassword = ref(false)
 
 // Pagination
 const page = ref(1)
@@ -250,6 +262,7 @@ const editUser = (user) => {
     role: user.role,
     addBalance: 0  // Default to 0 for adding balance
   }
+  newPassword.value = ''
   showModal.value = true
 }
 
@@ -257,6 +270,22 @@ const closeModal = () => {
   showModal.value = false
   editingUser.value = null
   editForm.value = {}
+  newPassword.value = ''
+}
+
+const resetPassword = async () => {
+  if (!editingUser.value || newPassword.value.length < 6) return
+
+  resettingPassword.value = true
+  try {
+    await api.put(`/admin/users/${editingUser.value.id}/password`, { password: newPassword.value })
+    newPassword.value = ''
+    toast.success('Đã đặt lại mật khẩu thành công')
+  } catch (error) {
+    toast.error(error.response?.data?.message || 'Không thể đặt lại mật khẩu')
+  } finally {
+    resettingPassword.value = false
+  }
 }
 
 const saveUser = async () => {

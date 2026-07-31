@@ -80,7 +80,9 @@ export const orderApi = {
   getOrder: (id) => api.get(`/orders/${id}`),
   checkout: (data) => api.post('/orders/checkout', data),
   applyPromotion: (data) => api.post('/orders/apply-promotion', data),
-  exportOrders: () => api.get('/orders/export'),
+  exportOrders: (orderIds) => api.get('/orders/export', {
+    params: { order_ids: orderIds.join(',') }
+  }),
 }
 
 // Deposit API
@@ -109,7 +111,7 @@ export const adminApi = {
 
   // Product Accounts (Stock management)
   getAccounts: (productId, params) => api.get(`/admin/products/${productId}/accounts`, { params }),
-  exportUnsoldAccounts: (productId) => api.get(`/admin/products/${productId}/accounts/export-unsold`, { responseType: 'blob' }),
+  exportAllAccounts: (productId) => api.get(`/admin/products/${productId}/accounts/export-unsold`, { responseType: 'blob' }),
   addAccounts: (productId, data) => api.post(`/admin/products/${productId}/accounts`, data),
   deleteAccount: (productId, accountId) => api.delete(`/admin/products/${productId}/accounts/${accountId}`),
   deleteAccountsBulk: (productId, ids) => api.post(`/admin/products/${productId}/accounts/bulk-delete`, { ids }),

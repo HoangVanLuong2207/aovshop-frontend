@@ -516,11 +516,11 @@ const loadAccounts = async (page = 1) => {
 const exportAccounts = async () => {
   if (!selectedProduct.value) return
   try {
-    const response = await adminApi.exportUnsoldAccounts(selectedProduct.value.id)
+    const response = await adminApi.exportAllAccounts(selectedProduct.value.id)
     const url = window.URL.createObjectURL(new Blob([response.data]))
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', `unsold_accounts_${selectedProduct.value.id}.txt`)
+    link.setAttribute('download', `all_accounts_${selectedProduct.value.id}.txt`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
