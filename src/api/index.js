@@ -72,6 +72,7 @@ export const shopApi = {
   getProduct: (id) => api.get(`/shop/products/${id}`),
   getFeaturedProducts: () => api.get('/shop/products/featured'),
   getNewProducts: () => api.get('/shop/products/new'),
+  getTopDeposit: () => api.get('/shop/top-deposit'),
 }
 
 // Order API

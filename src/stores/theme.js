@@ -3,7 +3,7 @@ import { storage } from '../utils/storage'
 
 export const useThemeStore = defineStore('theme', {
     state: () => ({
-        isDark: storage.get('theme') !== 'light',
+        isDark: storage.get('theme') === 'dark',
     }),
 
     actions: {

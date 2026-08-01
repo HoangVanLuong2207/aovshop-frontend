@@ -38,15 +38,15 @@
           <h4 class="section-title">Liên Hệ</h4>
           <ul class="footer-contact">
             <li v-if="settingsStore.contactHotline">
-              <span class="contact-icon">📞</span>
-              <span class="contact-text">Hotline: <strong>{{ settingsStore.contactHotline }}</strong></span>
+              <span class="contact-label">Hotline:</span>
+              <span class="contact-text"><strong>{{ settingsStore.contactHotline }}</strong></span>
             </li>
             <li>
-              <span class="contact-icon">⏰</span>
-              <span class="contact-text">Hỗ trợ: 24/7</span>
+              <span class="contact-label">Hỗ trợ:</span>
+              <span class="contact-text">24/7</span>
             </li>
             <li>
-              <span class="contact-icon">📍</span>
+              <span class="contact-label">Ghi chú:</span>
               <span class="contact-text">Hệ thống nạp thẻ tự động siêu nhanh.</span>
             </li>
           </ul>
@@ -56,7 +56,7 @@
       <div class="footer-bottom">
         <p>&copy; {{ currentYear }} <strong>{{ settingsStore.shopName }}</strong>. All rights reserved.</p>
         <div class="made-by">
-          Thiết kế với <span class="heart">❤️</span> bởi <span class="author">Lượng chứ ai</span>
+          Thiết kế bởi <span class="author">Lượng chứ ai</span>
         </div>
       </div>
     </div>
@@ -110,18 +110,14 @@ const currentYear = computed(() => new Date().getFullYear())
 }
 
 .logo-img {
-  height: 50px; /* Tăng lên 200px */
+  height: 50px;
   object-fit: contain;
-  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.4));
 }
 
 .logo-text {
-  font-size: 3.5rem; /* Tăng lên 3.5rem */
+  font-size: 2rem;
   font-weight: 800;
-  background: linear-gradient(135deg, var(--primary), var(--secondary));
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 20px rgba(99, 102, 241, 0.3));
+  color: var(--primary);
 }
 
 .shop-description {
@@ -172,7 +168,7 @@ const currentYear = computed(() => new Date().getFullYear())
 .footer-links a:hover {
   color: var(--primary);
   transform: translateX(5px);
-  text-shadow: 0 0 8px rgba(99, 102, 241, 0.2);
+  text-shadow: none;
 }
 
 .footer-contact {
@@ -189,9 +185,11 @@ const currentYear = computed(() => new Date().getFullYear())
   gap: 1rem;
 }
 
-.contact-icon {
-  font-size: 1.25rem;
-  filter: drop-shadow(0 0 5px rgba(99, 102, 241, 0.4));
+.contact-label {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.95rem;
+  white-space: nowrap;
 }
 
 .contact-text {
@@ -250,16 +248,7 @@ const currentYear = computed(() => new Date().getFullYear())
   font-weight: 700;
 }
 
-.heart {
-  color: var(--danger);
-  display: inline-block;
-  animation: heartBeat 1.5s infinite;
-}
 
-@keyframes heartBeat {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.2); }
-}
 
 .author {
   color: var(--text);

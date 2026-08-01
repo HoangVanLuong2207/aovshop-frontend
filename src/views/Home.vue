@@ -2,52 +2,55 @@
   <div class="home">
 
 
-    <!-- Hero Section with Banner Slider -->
-    <section class="hero">
-      <!-- Slider Container -->
-      <div class="slider-container" v-if="bannerImages.length > 0">
-        <div 
-          class="slider-track" 
-          :class="{ 'no-transition': isResetting }"
-          :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
-        >
-          <!-- Original slides + 1 cloned first slide for seamless loop -->
-          <div 
-            v-for="(banner, idx) in extendedBannerImages" 
-            :key="idx" 
-            class="slider-slide"
-            :style="{ backgroundImage: `linear-gradient(rgba(15, 15, 26, 0.8), rgba(15, 15, 26, 0.9)), url(${banner})` }"
-          ></div>
+    <!-- Hero Section: Banner + Top Deposit -->
+    <section class="hero-wrapper">
+      <div class="container hero-grid">
+        <!-- Banner Slider -->
+        <div class="hero-banner">
+          <div class="slider-container" v-if="bannerImages.length > 0">
+            <div 
+              class="slider-track" 
+              :class="{ 'no-transition': isResetting }"
+              :style="{ transform: `translateX(-${currentSlide * 100}%)` }"
+            >
+              <!-- Original slides + 1 cloned first slide for seamless loop -->
+              <div 
+                v-for="(banner, idx) in extendedBannerImages" 
+                :key="idx" 
+                class="slider-slide"
+                :style="{ backgroundImage: `url(${banner})` }"
+              ></div>
+            </div>
+          </div>
+          <div v-else class="slider-fallback"></div>
+          
+          <!-- Content overlay -->
+          <div class="hero-content">
+            <div>
+              <h1 class="hero-title">{{ settingsStore.shopName }}</h1>
+              <p class="hero-subtitle">Shop acc 24/7</p>
+              <button @click="scrollToCategories" class="btn btn-primary btn-lg">
+                Khám phá ngay
+              </button>
+            </div>
+          </div>
+          
+          <!-- Slider dots -->
+          <div v-if="bannerImages.length > 1" class="slider-dots">
+            <button 
+              v-for="(_, idx) in bannerImages" 
+              :key="idx" 
+              class="slider-dot" 
+              :class="{ active: currentSlide === idx }"
+              @click="goToSlide(idx)"
+            ></button>
+          </div>
         </div>
-      </div>
-      <!-- Fallback gradient khi không có banner -->
-      <div v-else class="slider-fallback"></div>
-      
-      <!-- Floating Particles -->
-      <div class="particles-container">
-        <div v-for="n in 15" :key="'particle-' + n" class="particle" :style="getParticleStyle(n)"></div>
-      </div>
-      
-      <!-- Content overlay -->
-      <div class="hero-content">
-        <div class="container">
-          <h1 class="hero-title">{{ settingsStore.shopName }}</h1>
-          <p class="hero-subtitle">Shop acc 24/7</p>
-          <button @click="scrollToCategories" class="btn btn-primary btn-lg">
-            Khám phá ngay →
-          </button>
+
+        <!-- Top Deposit Leaderboard -->
+        <div class="hero-deposit">
+          <TopDepositLeaderboard />
         </div>
-      </div>
-      
-      <!-- Slider Navigation (nếu có nhiều banner) -->
-      <div v-if="bannerImages.length > 1" class="slider-dots">
-        <button 
-          v-for="(_, idx) in bannerImages" 
-          :key="idx" 
-          class="slider-dot" 
-          :class="{ active: currentSlide === idx }"
-          @click="goToSlide(idx)"
-        ></button>
       </div>
     </section>
 
@@ -112,7 +115,7 @@
     <!-- Featured Products Carousel -->
     <section class="section" v-if="featuredProducts.length">
       <div class="container">
-        <h2 class="section-title reveal">🔥 Đang giảm giá</h2>
+        <h2 class="section-title reveal">Đang giảm giá</h2>
         <div class="carousel-wrapper">
           <button class="carousel-arrow carousel-arrow-left" @click="prevFeaturedSlide" v-if="featuredProducts.length > productsPerView">‹</button>
           <div class="carousel-container">
@@ -139,7 +142,7 @@
     <!-- New Products Carousel -->
     <section class="section" v-if="newProducts.length">
       <div class="container">
-        <h2 class="section-title reveal">✨ Sản phẩm mới</h2>
+        <h2 class="section-title reveal">Sản phẩm mới</h2>
         <div class="carousel-wrapper">
           <button class="carousel-arrow carousel-arrow-left" @click="prevNewSlide" v-if="newProducts.length > productsPerView">‹</button>
           <div class="carousel-container">
@@ -170,6 +173,7 @@ import { ref, reactive, computed, onMounted, onUnmounted, watch, nextTick } from
 import { shopApi } from '../api'
 import api from '../api'
 import ProductCard from '../components/ProductCard.vue'
+import TopDepositLeaderboard from '../components/TopDepositLeaderboard.vue'
 import { getImageUrl } from '../utils/image'
 import { useSettingsStore } from '../stores/settings'
 
@@ -470,29 +474,7 @@ onUnmounted(() => {
   window.removeEventListener('resize', updateItemsPerView)
 })
 
-// Particle style generator
-const getParticleStyle = (n) => {
-  const size = 4 + Math.random() * 8
-  const left = Math.random() * 100
-  const delay = Math.random() * 5
-  const duration = 5 + Math.random() * 5
-  const opacity = 0.3 + Math.random() * 0.4
-  
-  return {
-    width: `${size}px`,
-    height: `${size}px`,
-    left: `${left}%`,
-    top: `${20 + Math.random() * 60}%`,
-    animationDelay: `${delay}s`,
-    animationDuration: `${duration}s`,
-    opacity: opacity,
-    background: n % 3 === 0 
-      ? 'var(--primary)' 
-      : n % 3 === 1 
-        ? 'var(--secondary)' 
-        : 'rgba(255, 255, 255, 0.5)'
-  }
-}
+
 
 // Scroll reveal initialization
 const initScrollReveal = () => {
@@ -514,12 +496,48 @@ const initScrollReveal = () => {
 </script>
 
 <style scoped>
-/* ===== HERO SECTION ===== */
-.hero {
+/* ===== HERO WRAPPER: Banner + Deposit side by side ===== */
+.hero-wrapper {
+  padding: 1rem 0;
+}
+
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.hero-banner {
   position: relative;
-  min-height: 400px;
-  text-align: center;
+  min-height: 350px;
+  border-radius: var(--radius);
   overflow: hidden;
+  text-align: center;
+}
+
+.hero-deposit {
+  min-width: 0;
+}
+
+@media (max-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .hero-banner {
+    min-height: 280px;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-wrapper {
+    padding: 0.5rem 0;
+  }
+
+  .hero-banner {
+    min-height: 220px;
+  }
 }
 
 /* Slider Container */
@@ -582,13 +600,13 @@ const initScrollReveal = () => {
 }
 
 .carousel-arrow {
-  width: 50px;
-  height: 50px;
+  width: 44px;
+  height: 44px;
   border-radius: 50%;
-  border: 2px solid rgba(255, 255, 255, 0.3);
-  background: rgba(26, 26, 46, 0.8);
-  color: white;
-  font-size: 28px;
+  border: 1px solid var(--border);
+  background: var(--bg-secondary);
+  color: var(--text);
+  font-size: 24px;
   cursor: pointer;
   transition: all 0.3s ease;
   display: flex;
@@ -596,14 +614,14 @@ const initScrollReveal = () => {
   justify-content: center;
   flex-shrink: 0;
   z-index: 10;
-  backdrop-filter: blur(10px);
+  box-shadow: var(--shadow);
 }
 
 .carousel-arrow:hover {
   background: var(--primary);
   border-color: var(--primary);
-  transform: scale(1.1);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(229, 57, 53, 0.3);
 }
 
 .carousel-arrow:active {
@@ -632,9 +650,7 @@ const initScrollReveal = () => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(-45deg, #0f0f1a, #1a1a3e, #2d1b4e, #1a2e4a);
-  background-size: 400% 400%;
-  animation: gradientShift 15s ease infinite;
+  background: linear-gradient(135deg, #E53935, #FF6F00);
 }
 
 /* Hero Content Overlay */
@@ -677,86 +693,41 @@ const initScrollReveal = () => {
   transform: scale(1.2);
 }
 
-.hero::before,
-.hero::after {
-  content: '';
-  position: absolute;
-  border-radius: 50%;
-  filter: blur(60px);
-  opacity: 0.5;
-  animation: float 6s ease-in-out infinite;
-}
-
-.hero::before {
-  width: 300px;
-  height: 300px;
-  background: radial-gradient(circle, rgba(99, 102, 241, 0.4) 0%, transparent 70%);
-  top: -50px;
-  left: -50px;
-}
-
-.hero::after {
-  width: 400px;
-  height: 400px;
-  background: radial-gradient(circle, rgba(16, 185, 129, 0.3) 0%, transparent 70%);
-  bottom: -100px;
-  right: -100px;
-  animation-delay: -3s;
-}
-
-.hero .container {
-  position: relative;
-  z-index: 1;
-}
-
-.hero-title {
-  font-size: 4rem;
-  font-weight: 800;
-  background: linear-gradient(135deg, #fff 0%, var(--primary-light) 50%, var(--secondary) 100%);
-  background-size: 200% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 1rem;
-  animation: shimmer 3s linear infinite;
-  text-shadow: 0 0 40px rgba(99, 102, 241, 0.3);
-}
-
-.hero-subtitle {
-  font-size: 1.35rem;
-  font-weight: 500;
-  background: linear-gradient(90deg, 
-    #ff6b6b, #ffa94d, #ffd43b, #69db7c, #74c0fc, #b197fc, #f783ac, #ff6b6b);
-  background-size: 300% auto;
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: 2.5rem;
-  animation: rgb-shift 4s linear infinite;
-}
-
-@keyframes rgb-shift {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 100% 50%; }
-}
-
-.hero .btn-primary {
-  padding: 1.25rem 2.5rem;
-  font-size: 1.15rem;
-  animation: pulse-glow 2s ease-in-out infinite;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero .btn-primary::before {
+.hero-banner::before {
   content: '';
   position: absolute;
   top: 0;
-  left: -100%;
+  left: 0;
   width: 100%;
   height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  animation: shimmer 2s linear infinite;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.35), rgba(0,0,0,0.65));
+  z-index: 1;
+}
+
+.hero-banner::after {
+  display: none;
+}
+
+
+.hero-title {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #fff;
+  margin-bottom: 0.75rem;
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.hero-subtitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.9);
+  margin-bottom: 2rem;
+}
+
+.hero-banner .btn-primary {
+  padding: 1rem 2.5rem;
+  font-size: 1.1rem;
+  border-radius: 6px;
 }
 
 /* ===== SECTIONS ===== */
@@ -766,21 +737,22 @@ const initScrollReveal = () => {
 }
 
 .section-title {
-  font-size: 2rem;
+  font-size: 1.5rem;
   font-weight: 700;
-  margin-bottom: 2.5rem;
+  margin-bottom: 2rem;
+  color: var(--primary);
+  text-align: center;
   position: relative;
-  display: inline-block;
+  display: block;
 }
 
 .section-title::after {
   content: '';
-  position: absolute;
-  bottom: -8px;
-  left: 0;
+  display: block;
   width: 60px;
-  height: 4px;
-  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  height: 3px;
+  background: var(--primary);
+  margin: 8px auto 0;
   border-radius: 2px;
 }
 
@@ -809,12 +781,12 @@ const initScrollReveal = () => {
 }
 
 .category-card:hover {
-  transform: translateY(-8px) scale(1.02);
-  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(229, 57, 53, 0.2);
 }
 
 .category-card:hover .category-overlay {
-  background: rgba(99,102,241,0.6);
+  background: rgba(229, 57, 53, 0.5);
 }
 
 .category-content {
@@ -828,51 +800,31 @@ const initScrollReveal = () => {
 }
 
 .category-card h3 {
-  font-size: 1.75rem;
+  font-size: 1.5rem;
   margin-bottom: 0.5rem;
   font-weight: 700;
-  background: linear-gradient(
-    90deg,
-    #ff0000, #ffff00, #00ff00, #ff0000
-  );
-  background-size: 400% 100%;
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: rgb-flow 30s linear infinite;
-  text-shadow: none;
-}
-
-@keyframes rgb-flow {
-  0% { background-position: 0% 50%; }
-  100% { background-position: 400% 50%; }
-}
-
-.category-card p {
-  color: rgba(255, 255, 255, 0.95);
-  font-size: 1.1rem;
-  margin: 0;
+  color: #fff;
   text-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
 }
 
 /* Mobile Responsive */
 @media (max-width: 768px) {
-  .hero {
+  .hero-banner {
     padding: 4rem 0;
   }
 
-  .hero::before,
-  .hero::after {
+  .hero-banner::before,
+  .hero-banner::after {
     opacity: 0.3;
     filter: blur(40px);
   }
 
-  .hero::before {
+  .hero-banner::before {
     width: 200px;
     height: 200px;
   }
 
-  .hero::after {
+  .hero-banner::after {
     width: 250px;
     height: 250px;
   }
@@ -887,7 +839,7 @@ const initScrollReveal = () => {
     margin-bottom: 2rem;
   }
 
-  .hero .btn-primary {
+  .hero-banner .btn-primary {
     padding: 1rem 2rem;
     font-size: 1rem;
   }
@@ -929,7 +881,7 @@ const initScrollReveal = () => {
 }
 
 @media (max-width: 480px) {
-  .hero {
+  .hero-banner {
     padding: 2rem 0;
   }
 
@@ -992,39 +944,7 @@ const initScrollReveal = () => {
   }
 }
 
-/* ===== PARTICLES ===== */
-.particles-container {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden;
-  pointer-events: none;
-  z-index: 1;
-}
 
-.particle {
-  position: absolute;
-  border-radius: 50%;
-  animation: float-particle 6s ease-in-out infinite;
-  filter: blur(1px);
-}
-
-@keyframes float-particle {
-  0%, 100% {
-    transform: translateY(0) translateX(0);
-  }
-  25% {
-    transform: translateY(-20px) translateX(10px);
-  }
-  50% {
-    transform: translateY(-10px) translateX(-10px);
-  }
-  75% {
-    transform: translateY(-30px) translateX(5px);
-  }
-}
 
 /* ===== SKELETON LOADING ===== */
 .skeleton-grid {
@@ -1059,13 +979,13 @@ const initScrollReveal = () => {
 .skeleton {
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0.03) 25%,
-    rgba(255, 255, 255, 0.08) 50%,
-    rgba(255, 255, 255, 0.03) 75%
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.04) 75%
   );
   background-size: 200px 100%;
   animation: skeleton-loading 1.5s ease-in-out infinite;
-  border-radius: 8px;
+  border-radius: 6px;
 }
 
 .skeleton-icon {
@@ -1103,9 +1023,9 @@ const initScrollReveal = () => {
 
 /* ===== RECENT ORDERS (Inline Marquee) ===== */
 .mobile-recent-orders {
-  display: block; /* Show on all devices */
-  background: linear-gradient(90deg, rgba(16, 185, 129, 0.15), rgba(99, 102, 241, 0.15));
-  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
+  display: block;
+  background: rgba(229, 57, 53, 0.06);
+  border-bottom: 1px solid rgba(229, 57, 53, 0.15);
   padding: 10px 0;
   overflow: hidden;
 }

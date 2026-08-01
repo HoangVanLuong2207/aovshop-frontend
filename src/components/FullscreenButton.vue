@@ -74,7 +74,7 @@ onUnmounted(() => {
 .fullscreen-btn {
   position: fixed;
   right: 15px;
-  background: rgba(99, 102, 241, 0.9);
+  background: var(--primary);
   backdrop-filter: blur(8px);
   color: white;
   border: 1px solid rgba(255, 255, 255, 0.2);
@@ -83,7 +83,7 @@ onUnmounted(() => {
   display: flex;
   align-items: center;
   gap: 8px;
-  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3), 0 0 15px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15), 0 0 10px rgba(229, 57, 53, 0.2);
   z-index: 1005;
   transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   cursor: pointer;
@@ -91,7 +91,7 @@ onUnmounted(() => {
 
 /* Đồng nhất phong cách, không làm mờ khi ở chế độ full */
 .fullscreen-btn.is-full {
-  background: rgba(99, 102, 241, 0.9); /* Giữ nguyên màu primary */
+  background: var(--primary);
 }
 
 .icon-wrapper {

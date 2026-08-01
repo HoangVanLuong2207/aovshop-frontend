@@ -1,5 +1,5 @@
 <template>
-  <router-link :to="`/products/${product.id}`" class="product-card" ref="cardRef">
+  <router-link :to="`/products/${product.id}`" class="product-card">
     <div class="product-image-wrapper">
       <img 
         :src="getImageUrl(product.image)" 
@@ -7,16 +7,6 @@
         class="product-image"
         loading="lazy"
       />
-      <!-- Quick View Overlay -->
-      <div class="product-overlay" @click.prevent="openQuickView">
-        <span class="quick-view-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-            <circle cx="12" cy="12" r="3"/>
-          </svg>
-          Xem nhanh
-        </span>
-      </div>
     </div>
     
     <div class="product-info">
@@ -27,7 +17,7 @@
       <div class="product-pricing">
         <span class="product-price">{{ formatPrice(currentPrice) }}</span>
         <span v-if="isOnSale" class="product-price-old">{{ formatPrice(product.price) }}</span>
-        <span v-if="isOnSale" class="discount-badge">{{ discountPercent }}% OFF</span>
+        <span v-if="isOnSale" class="discount-badge">-{{ discountPercent }}%</span>
       </div>
       <div class="product-meta">
         <div class="product-stock" :class="stockClass">
@@ -35,8 +25,7 @@
           {{ stockText }}
         </div>
         <div class="product-sold">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle; margin-right: 2px;"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-          {{ product.sold_count || 0 }}
+          Đã bán {{ product.sold_count || 0 }}
         </div>
       </div>
       <!-- Stock Progress Bar -->
@@ -44,15 +33,17 @@
         <div class="stock-bar" :style="{ width: stockPercent + '%' }"></div>
         <span class="stock-text">Còn {{ product.stock }} sản phẩm</span>
       </div>
+      <div class="product-action">
+        <span class="btn-buy">MUA NGAY</span>
+      </div>
     </div>
     
     <!-- Badges -->
     <div v-if="isOnSale" class="sale-badge">
-      <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" style="margin-right: 2px;"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
       <span class="sale-text">FLASH SALE</span>
     </div>
-    <div v-if="product.is_preorder" class="preorder-badge">⏳ ĐẶT TRƯỚC</div>
-    <div v-else-if="isNew" class="new-badge">NEW</div>
+    <div v-if="product.is_preorder" class="preorder-badge">ĐẶT TRƯỚC</div>
+    <div v-else-if="isNew" class="new-badge">MỚI</div>
     
     <!-- Quick View Modal -->
     <QuickViewModal 
@@ -64,7 +55,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from 'vue'
+import { computed, ref } from 'vue'
 import { getImageUrl } from '../utils/image'
 import QuickViewModal from './QuickViewModal.vue'
 
@@ -75,13 +66,7 @@ const props = defineProps({
   }
 })
 
-const cardRef = ref(null)
 const showQuickView = ref(false)
-
-const openQuickView = (e) => {
-  e.preventDefault()
-  showQuickView.value = true
-}
 
 const currentPrice = computed(() => props.product.sale_price || props.product.price)
 const isOnSale = computed(() => props.product.sale_price && props.product.sale_price < props.product.price)
@@ -99,7 +84,7 @@ const discountPercent = computed(() => {
 })
 
 const stockPercent = computed(() => {
-  const maxStock = 50 // Assume max stock for progress bar
+  const maxStock = 50
   return Math.min((props.product.stock / maxStock) * 100, 100)
 })
 
@@ -123,40 +108,6 @@ const formatPrice = (price) => {
     currency: 'VND'
   }).format(price)
 }
-
-// 3D Tilt Effect
-const handleMouseMove = (e) => {
-  if (!cardRef.value?.$el) return
-  const card = cardRef.value.$el
-  const rect = card.getBoundingClientRect()
-  const x = e.clientX - rect.left
-  const y = e.clientY - rect.top
-  const centerX = rect.width / 2
-  const centerY = rect.height / 2
-  const rotateX = (y - centerY) / 20
-  const rotateY = (centerX - x) / 20
-  
-  card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-8px)`
-}
-
-const handleMouseLeave = () => {
-  if (!cardRef.value?.$el) return
-  cardRef.value.$el.style.transform = ''
-}
-
-onMounted(() => {
-  if (cardRef.value?.$el) {
-    cardRef.value.$el.addEventListener('mousemove', handleMouseMove)
-    cardRef.value.$el.addEventListener('mouseleave', handleMouseLeave)
-  }
-})
-
-onUnmounted(() => {
-  if (cardRef.value?.$el) {
-    cardRef.value.$el.removeEventListener('mousemove', handleMouseMove)
-    cardRef.value.$el.removeEventListener('mouseleave', handleMouseLeave)
-  }
-})
 </script>
 
 <style scoped>
@@ -168,16 +119,13 @@ onUnmounted(() => {
   border: 1px solid var(--border);
   border-radius: var(--radius);
   overflow: hidden;
-  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  transform-style: preserve-3d;
+  transition: all 0.3s ease;
 }
 
 .product-card:hover {
   border-color: var(--primary);
-  box-shadow: 
-    0 20px 40px rgba(0, 0, 0, 0.3), 
-    0 0 30px rgba(99, 102, 241, 0.2),
-    0 0 60px rgba(99, 102, 241, 0.1);
+  box-shadow: 0 8px 24px rgba(229, 57, 53, 0.12);
+  transform: translateY(-3px);
 }
 
 /* Image Wrapper */
@@ -192,65 +140,25 @@ onUnmounted(() => {
   height: 100%;
   object-fit: cover;
   background: var(--bg-tertiary);
-  transition: transform 0.5s ease;
+  transition: transform 0.4s ease;
 }
 
 .product-card:hover .product-image {
-  transform: scale(1.1);
-}
-
-/* Overlay */
-.product-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to bottom, transparent 30%, rgba(0, 0, 0, 0.7));
-  display: flex;
-  align-items: flex-end;
-  justify-content: center;
-  padding-bottom: 20px;
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-
-.product-card:hover .product-overlay {
-  opacity: 1;
-}
-
-.quick-view-btn {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background: rgba(255, 255, 255, 0.15);
-  backdrop-filter: blur(10px);
-  border-radius: 50px;
-  color: white;
-  font-size: 14px;
-  font-weight: 600;
-  transform: translateY(20px);
-  transition: all 0.3s ease;
-}
-
-.product-card:hover .quick-view-btn {
-  transform: translateY(0);
-}
-
-.quick-view-btn:hover {
-  background: var(--primary);
+  transform: scale(1.05);
 }
 
 /* Product Info */
 .product-info {
-  padding: 1.25rem;
+  padding: 1rem;
   position: relative;
   z-index: 1;
   background: var(--bg-secondary);
 }
 
 .product-category {
-  font-size: 0.75rem;
-  color: var(--primary-light);
-  margin-bottom: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--primary);
+  margin-bottom: 0.4rem;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
@@ -258,9 +166,9 @@ onUnmounted(() => {
 
 .product-name {
   font-weight: 600;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
   color: var(--text);
-  font-size: 1.05rem;
+  font-size: 0.95rem;
   line-height: 1.4;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -272,34 +180,31 @@ onUnmounted(() => {
 .product-pricing {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
   flex-wrap: wrap;
 }
 
 .product-price {
-  font-size: 1.35rem;
+  font-size: 1.2rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  color: var(--primary);
 }
 
 .product-price-old {
-  font-size: 0.9rem;
+  font-size: 0.85rem;
   color: var(--text-muted);
   text-decoration: line-through;
 }
 
 .discount-badge {
-  background: #fff5f5;
-  color: #f03e3e;
+  background: #fff0f0;
+  color: var(--primary);
   padding: 1px 6px;
   border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 700;
-  border: 1px solid #ffa8a8;
+  border: 1px solid rgba(229, 57, 53, 0.2);
 }
 
 /* Meta */
@@ -307,24 +212,23 @@ onUnmounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 0.85rem;
-  padding-top: 0.75rem;
+  font-size: 0.8rem;
+  padding-top: 0.5rem;
   border-top: 1px solid var(--border);
 }
 
 .product-stock {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 5px;
   font-weight: 500;
 }
 
 .stock-dot {
-  width: 8px;
-  height: 8px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
   background: currentColor;
-  animation: pulse 2s ease-in-out infinite;
 }
 
 .product-sold {
@@ -334,10 +238,10 @@ onUnmounted(() => {
 
 /* Stock Progress Bar */
 .stock-bar-wrapper {
-  margin-top: 12px;
+  margin-top: 10px;
   position: relative;
-  height: 6px;
-  background: rgba(255, 255, 255, 0.1);
+  height: 5px;
+  background: rgba(0, 0, 0, 0.06);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -352,9 +256,32 @@ onUnmounted(() => {
 .stock-text {
   position: absolute;
   right: 0;
-  top: -20px;
+  top: -18px;
   font-size: 11px;
   color: var(--text-muted);
+}
+
+/* MUA NGAY Button */
+.product-action {
+  margin-top: 0.75rem;
+}
+
+.btn-buy {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: 0.5rem;
+  background: var(--primary);
+  color: white;
+  border-radius: var(--radius-sm);
+  font-size: 0.85rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  transition: background 0.2s;
+}
+
+.product-card:hover .btn-buy {
+  background: var(--primary-dark);
 }
 
 /* Badges */
@@ -362,18 +289,15 @@ onUnmounted(() => {
   position: absolute;
   top: 10px;
   right: 10px;
-  background: rgba(239, 68, 68, 0.9);
-  backdrop-filter: blur(4px);
+  background: var(--primary);
   color: white;
   padding: 3px 10px;
   border-radius: 4px;
   font-size: 0.65rem;
   font-weight: 800;
   text-transform: uppercase;
-  letter-spacing: 1px;
-  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+  letter-spacing: 0.5px;
   z-index: 2;
-  border: 1px solid rgba(255, 255, 255, 0.1);
   display: flex;
   align-items: center;
 }
@@ -384,33 +308,17 @@ onUnmounted(() => {
 
 .new-badge {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  background: linear-gradient(135deg, #10b981, #059669);
+  top: 10px;
+  left: 10px;
+  background: var(--success);
   color: white;
-  padding: 0.35rem 1rem;
-  border-radius: 9999px;
-  font-size: 0.75rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
+  font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 15px rgba(16, 185, 129, 0.4);
   z-index: 2;
-  animation: bounce-subtle 2s ease-in-out infinite;
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 4px 15px rgba(239, 68, 68, 0.4);
-  }
-  50% {
-    box-shadow: 0 4px 25px rgba(239, 68, 68, 0.6), 0 0 40px rgba(239, 68, 68, 0.3);
-  }
-}
-
-@keyframes bounce-subtle {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-3px); }
 }
 
 .text-success { color: var(--success); }
@@ -420,19 +328,17 @@ onUnmounted(() => {
 
 .preorder-badge {
   position: absolute;
-  top: 12px;
-  left: 12px;
-  background: linear-gradient(135deg, #f59e0b, #d97706);
+  top: 10px;
+  left: 10px;
+  background: #F9A825;
   color: white;
-  padding: 0.3rem 0.8rem;
-  border-radius: 9999px;
+  padding: 0.25rem 0.75rem;
+  border-radius: 4px;
   font-size: 0.65rem;
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  box-shadow: 0 4px 15px rgba(245, 158, 11, 0.4);
   z-index: 2;
-  animation: bounce-subtle 2s ease-in-out infinite;
 }
 
 /* Responsive */
@@ -442,15 +348,20 @@ onUnmounted(() => {
   }
   
   .product-info {
-    padding: 1rem;
+    padding: 0.75rem;
   }
   
   .product-name {
-    font-size: 0.95rem;
+    font-size: 0.85rem;
   }
   
   .product-price {
-    font-size: 1.15rem;
+    font-size: 1rem;
+  }
+  
+  .btn-buy {
+    padding: 0.4rem;
+    font-size: 0.8rem;
   }
 }
 </style>

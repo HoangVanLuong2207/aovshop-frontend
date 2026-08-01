@@ -106,20 +106,20 @@ onMounted(() => {
   width: 60px;
   height: 60px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #6366f1, #8b5cf6);
+  background: var(--primary);
   border: none;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.3);
   transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
   position: relative;
 }
 
 .chat-toggle:hover {
   transform: scale(1.1);
-  box-shadow: 0 8px 30px rgba(99, 102, 241, 0.6);
+  box-shadow: 0 6px 20px rgba(229, 57, 53, 0.4);
 }
 
 .chat-icon,
@@ -175,7 +175,7 @@ onMounted(() => {
 .chat-option:hover {
   transform: translateX(-10px);
   border-color: var(--option-color);
-  box-shadow: 0 4px 20px rgba(99, 102, 241, 0.3);
+  box-shadow: 0 4px 15px rgba(229, 57, 53, 0.2);
 }
 
 .chat-option-icon {

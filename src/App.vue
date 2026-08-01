@@ -4,8 +4,7 @@
     <div v-if="showNotification && notification.enabled" class="popup-overlay" @click.self="closeNotification">
       <div class="popup-modal">
         <div class="popup-header">
-          <span class="popup-icon">📢</span>
-          <h3 class="popup-title">Thông báo</h3>
+          <h3 class="popup-title">THÔNG BÁO</h3>
           <button class="popup-close" @click="closeNotification">✕</button>
         </div>
         <div class="popup-content" v-html="notification.text">
@@ -129,12 +128,12 @@ onMounted(() => {
 
 /* Popup Modal */
 .popup-modal {
-  background: linear-gradient(135deg, var(--bg-secondary, #1a1a2e), var(--bg-tertiary, #252540));
-  border: 1px solid rgba(99, 102, 241, 0.3);
-  border-radius: 16px;
+  background: var(--bg-secondary, #ffffff);
+  border: 1px solid var(--border, #dee2e6);
+  border-radius: 12px;
   width: 100%;
   max-width: 450px;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5), 0 0 40px rgba(99, 102, 241, 0.2);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
   animation: slideUp 0.3s ease;
   overflow: hidden;
 }
@@ -154,31 +153,28 @@ onMounted(() => {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 1.25rem 1.5rem;
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(16, 185, 129, 0.1));
-  border-bottom: 1px solid rgba(99, 102, 241, 0.2);
-}
-
-.popup-icon {
-  font-size: 1.75rem;
+  padding: 1rem 1.5rem;
+  background: var(--primary);
+  border-bottom: 1px solid var(--primary-dark);
 }
 
 .popup-title {
   flex: 1;
-  font-size: 1.25rem;
+  font-size: 1.1rem;
   font-weight: 700;
-  color: var(--text, #f8fafc);
+  color: #fff;
   margin: 0;
+  letter-spacing: 0.5px;
 }
 
 .popup-close {
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.2);
   border: none;
-  color: var(--text-secondary, #94a3b8);
-  font-size: 1.25rem;
+  color: #fff;
+  font-size: 1.1rem;
   cursor: pointer;
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -187,13 +183,12 @@ onMounted(() => {
 }
 
 .popup-close:hover {
-  background: rgba(239, 68, 68, 0.2);
-  color: #ef4444;
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .popup-content {
   padding: 1.5rem;
-  color: var(--text, #f8fafc);
+  color: var(--text, #212529);
   font-size: 1rem;
   line-height: 1.7;
 }

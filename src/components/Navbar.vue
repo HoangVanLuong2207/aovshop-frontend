@@ -35,7 +35,7 @@
           <div class="navbar-actions desktop-actions">
             <!-- Theme Toggle -->
             <button class="theme-toggle btn btn-secondary btn-sm" @click="themeStore.toggle" :title="themeStore.isDark ? 'Chuyển sang sáng' : 'Chuyển sang tối'">
-              {{ themeStore.isDark ? '☀️' : '🌙' }}
+              {{ themeStore.isDark ? '☀︎' : '⏾' }}
             </button>
 
             <template v-if="authStore.isAuthenticated">
@@ -44,7 +44,7 @@
               </router-link>
               
               <router-link to="/cart" class="cart-badge btn btn-secondary btn-sm">
-                🛒 Giỏ hàng
+                Giỏ hàng
                 <span v-if="cartStore.itemCount" class="cart-count">{{ cartStore.itemCount }}</span>
               </router-link>
 
@@ -96,10 +96,10 @@
         <!-- Nav Links -->
         <div class="mobile-nav-section">
           <router-link to="/" class="mobile-nav-item" @click="closeMobileMenu">
-            🏠 Trang chủ
+            Trang chủ
           </router-link>
           <div class="mobile-nav-item mobile-category-header" @click="showMobileCategories = !showMobileCategories">
-            📁 Danh mục
+            Danh mục
             <span class="mobile-category-arrow" :class="{ open: showMobileCategories }">▾</span>
           </div>
           <div v-if="showMobileCategories" class="mobile-category-list">
@@ -114,36 +114,36 @@
             </router-link>
           </div>
           <router-link to="/products" class="mobile-nav-item" @click="closeMobileMenu">
-            📦 Sản phẩm
+            Sản phẩm
           </router-link>
         </div>
 
         <template v-if="authStore.isAuthenticated">
           <div class="mobile-nav-section">
             <router-link to="/deposit" class="mobile-nav-item balance-item" @click="closeMobileMenu">
-              💰 Số dư: {{ formatPrice(authStore.balance) }}
+              Số dư: {{ formatPrice(authStore.balance) }}
             </router-link>
             <router-link to="/cart" class="mobile-nav-item" @click="closeMobileMenu">
-              🛒 Giỏ hàng
+              Giỏ hàng
               <span v-if="cartStore.itemCount" class="mobile-cart-count">{{ cartStore.itemCount }}</span>
             </router-link>
             <router-link to="/orders" class="mobile-nav-item" @click="closeMobileMenu">
-              📋 Đơn hàng
+              Đơn hàng
             </router-link>
             <router-link to="/profile" class="mobile-nav-item" @click="closeMobileMenu">
-              👤 Tài khoản
+              Tài khoản
             </router-link>
             <router-link v-if="authStore.isAdmin" to="/admin" class="mobile-nav-item admin-item" @click="closeMobileMenu">
-              ⚙️ Admin
+              Admin
             </router-link>
           </div>
 
           <div class="mobile-nav-section">
             <button class="mobile-nav-item theme-item" @click="themeStore.toggle">
-              {{ themeStore.isDark ? '☀️ Chế độ sáng' : '🌙 Chế độ tối' }}
+              {{ themeStore.isDark ? 'Chế độ sáng' : 'Chế độ tối' }}
             </button>
             <button class="mobile-nav-item logout-item" @click="logout">
-              🚪 Đăng xuất
+              Đăng xuất
             </button>
           </div>
         </template>
@@ -151,7 +151,7 @@
         <template v-else>
           <div class="mobile-nav-section">
             <button class="mobile-nav-item theme-item" @click="themeStore.toggle">
-              {{ themeStore.isDark ? '☀️ Chế độ sáng' : '🌙 Chế độ tối' }}
+              {{ themeStore.isDark ? 'Chế độ sáng' : 'Chế độ tối' }}
             </button>
           </div>
           <div class="mobile-auth-buttons">
@@ -239,9 +239,8 @@ onUnmounted(() => {
 }
 
 .navbar-scrolled {
-  background: rgba(15, 15, 26, 0.95) !important;
-  backdrop-filter: blur(10px);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  background: var(--bg-secondary) !important;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.1);
   padding-top: 0.5rem !important;
   padding-bottom: 0.5rem !important;
 }
@@ -259,8 +258,8 @@ onUnmounted(() => {
 }
 
 @keyframes pulse-balance {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.4); }
-  50% { box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(229, 57, 53, 0.3); }
+  50% { box-shadow: 0 0 0 6px rgba(229, 57, 53, 0); }
 }
 
 /* Shop Logo */
@@ -273,10 +272,9 @@ onUnmounted(() => {
 }
 
 .shop-logo-img {
-  height: 32px; /* Tăng từ 32px */
+  height: 32px;
   width: auto;
-  border-radius: 8px;
-  filter: drop-shadow(0 0 8px rgba(99, 102, 241, 0.2));
+  border-radius: 6px;
 }
 
 /* Nav Dropdown (Categories) */
@@ -521,13 +519,13 @@ onUnmounted(() => {
 }
 
 .balance-item {
-  background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+  background: var(--primary);
   color: white;
 }
 
 .balance-item:hover {
   opacity: 0.9;
-  background: linear-gradient(135deg, var(--secondary), var(--secondary-dark));
+  background: var(--primary-dark);
 }
 
 .admin-item {
