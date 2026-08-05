@@ -343,6 +343,30 @@
     </div>
     </div>
 
+    <div class="settings-section" style="margin-top: 24px;">
+      <h2>Đăng nhập Google</h2>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1rem;">
+        Dán OAuth 2.0 Client ID loại Web application từ Google Cloud Console. Đây không phải Google ID cá nhân.
+      </p>
+      <form @submit.prevent="saveSettings" class="settings-form">
+        <div class="form-group">
+          <label>Google OAuth Client ID</label>
+          <input
+            v-model="settings.google_client_id"
+            type="text"
+            class="form-input"
+            placeholder="1234567890-abcxyz.apps.googleusercontent.com"
+          />
+          <small>Thêm domain frontend vào Authorized JavaScript origins trong Google Cloud Console.</small>
+        </div>
+        <div class="form-actions">
+          <button type="submit" class="btn btn-primary" :disabled="saving">
+            {{ saving ? 'Đang lưu...' : 'Lưu cấu hình Google' }}
+          </button>
+        </div>
+      </form>
+    </div>
+
     <!-- API Settings Section -->
     <div class="settings-section" style="margin-top: 24px;">
       <h2>🔑 API cho Công cụ (Tool)</h2>
@@ -415,6 +439,7 @@ const settings = ref({
   telegram_chat_id: '',
   brevo_api_key: '',
   brevo_sender_email: '',
+  google_client_id: '',
 })
 
 const showToken = ref(false)

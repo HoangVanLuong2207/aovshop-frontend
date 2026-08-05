@@ -47,6 +47,21 @@ export const useAuthStore = defineStore('auth', {
             }
         },
 
+        async googleLogin(credential) {
+            this.loading = true
+            this.error = null
+            try {
+                const response = await authApi.googleLogin(credential)
+                this.setAuth(response.data)
+                return response.data
+            } catch (error) {
+                this.error = error.response?.data?.message || 'Đăng nhập Google thất bại'
+                throw error
+            } finally {
+                this.loading = false
+            }
+        },
+
         async logout() {
             try {
                 await authApi.logout()

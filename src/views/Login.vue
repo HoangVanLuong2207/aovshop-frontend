@@ -37,6 +37,9 @@
         </button>
       </form>
 
+      <div class="auth-divider"><span>hoặc</span></div>
+      <GoogleSignInButton @credential="handleGoogleLogin" @error="error = $event" />
+
       <p class="auth-footer">
         Chưa có tài khoản? 
         <router-link to="/register">Đăng ký ngay</router-link>
@@ -49,6 +52,7 @@
 import { ref, reactive } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
+import GoogleSignInButton from '../components/GoogleSignInButton.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -71,6 +75,20 @@ const handleLogin = async () => {
     router.push(redirect)
   } catch (err) {
     error.value = err.response?.data?.message || 'Đăng nhập thất bại'
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleGoogleLogin = async (credential) => {
+  loading.value = true
+  error.value = ''
+  try {
+    await authStore.googleLogin(credential)
+    const redirect = route.query.redirect || (authStore.isAdmin ? '/admin' : '/')
+    router.push(redirect)
+  } catch (err) {
+    error.value = err.response?.data?.message || 'Đăng nhập Google thất bại'
   } finally {
     loading.value = false
   }
@@ -133,5 +151,21 @@ const handleLogin = async () => {
 
 .forgot-link:hover {
   text-decoration: underline;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0;
+  color: var(--text-secondary);
+  font-size: .85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--border);
 }
 </style>

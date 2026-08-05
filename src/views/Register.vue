@@ -57,6 +57,9 @@
         </button>
       </form>
 
+      <div class="auth-divider"><span>hoáº·c</span></div>
+      <GoogleSignInButton @credential="handleGoogleLogin" @error="error = $event" />
+
       <p class="auth-footer">
         Đã có tài khoản? 
         <router-link to="/login">Đăng nhập</router-link>
@@ -71,6 +74,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '../stores/auth'
 import api from '../api'
 import { useToast } from '../composables/useToast'
+import GoogleSignInButton from '../components/GoogleSignInButton.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -107,6 +111,20 @@ const handleRegister = async () => {
     router.push(authStore.isAdmin ? '/admin' : '/')
   } catch (err) {
     error.value = err.response?.data?.message || 'Đăng ký thất bại'
+  } finally {
+    loading.value = false
+  }
+}
+
+const handleGoogleLogin = async (credential) => {
+  loading.value = true
+  error.value = ''
+  try {
+    await authStore.googleLogin(credential)
+    toast.success('ÄÄƒng nháº­p Google thÃ nh cÃ´ng!')
+    router.push(authStore.isAdmin ? '/admin' : '/')
+  } catch (err) {
+    error.value = err.response?.data?.message || 'ÄÄƒng nháº­p Google tháº¥t báº¡i'
   } finally {
     loading.value = false
   }
@@ -160,6 +178,22 @@ const resendEmail = async () => {
   text-align: center;
   margin-top: 1.5rem;
   color: var(--text-secondary);
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin: 1.5rem 0 0;
+  color: var(--text-secondary);
+  font-size: .85rem;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-top: 1px solid var(--border);
 }
 
 /* Verification Prompt Styles */
