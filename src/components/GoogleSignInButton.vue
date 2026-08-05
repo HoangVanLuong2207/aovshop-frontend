@@ -19,9 +19,6 @@ let script
 
 const renderButton = () => {
   if (!window.google?.accounts?.id || !button.value) return
-  // Calculate width based on container, capped at reasonable bounds
-  const containerWidth = container.value?.offsetWidth || 300
-  const btnWidth = Math.min(containerWidth, 400)
 
   window.google.accounts.id.initialize({
     client_id: clientId.value,
@@ -29,7 +26,7 @@ const renderButton = () => {
     auto_select: false,
   })
   window.google.accounts.id.renderButton(button.value, {
-    type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', width: btnWidth,
+    type: 'standard', theme: 'outline', size: 'large', text: 'continue_with',
   })
 }
 
@@ -63,7 +60,28 @@ onBeforeUnmount(() => script?.remove())
 </script>
 
 <style scoped>
-.google-sign-in { margin-top: 1rem; }
-.google-button { display: flex; justify-content: center; overflow: hidden; }
-.google-unavailable { color: var(--text-secondary); font-size: .85rem; text-align: center; }
+.google-sign-in {
+  margin-top: 1rem;
+}
+
+.google-button {
+  display: flex;
+  justify-content: center;
+}
+
+/* Force Google's iframe to fit within container */
+.google-button :deep(div) {
+  max-width: 100% !important;
+}
+
+.google-button :deep(iframe) {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.google-unavailable {
+  color: var(--text-secondary);
+  font-size: .85rem;
+  text-align: center;
+}
 </style>
