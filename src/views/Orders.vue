@@ -55,12 +55,17 @@
           <div v-if="order.accounts && order.accounts.length > 0" class="purchased-accounts">
             <div class="accounts-header">🔑 Tài khoản đã mua:</div>
             <div class="accounts-list">
-              <div v-for="acc in order.accounts" :key="acc.id" class="account-line">
+              <div v-for="acc in accountPreview(order.accounts)" :key="acc.id" class="account-line">
                 <code>{{ acc.data }}</code>
                 <button class="btn btn-sm btn-icon" @click="copyToClipboard(acc.data)" title="Copy">📋</button>
               </div>
             </div>
             <p class="account-tip">Định dạng: <strong>tài khoản|mật khẩu</strong></p>
+          </div>
+
+          <div v-if="order.accounts && order.accounts.length > previewAccountLimit" class="accounts-more">
+            <span>Đang hiển thị {{ previewAccountLimit }}/{{ order.accounts.length }} tài khoản</span>
+            <button class="btn btn-sm btn-secondary" @click="showOrderDetails(order)">Xem chi tiết</button>
           </div>
 
           <!-- Pre-order: customer note -->
@@ -110,6 +115,23 @@
       </div>
     </div>
   </div>
+    <div v-if="detailOrder" class="account-details-modal" role="dialog" aria-modal="true" :aria-label="`Chi tiết tài khoản đơn hàng #${detailOrder.id}`" @click.self="closeOrderDetails">
+      <div class="account-details-dialog">
+        <div class="account-details-header">
+          <div>
+            <h2>Chi tiết tài khoản đơn hàng #{{ detailOrder.id }}</h2>
+            <p>{{ detailOrder.accounts.length }} tài khoản đã mua</p>
+          </div>
+          <button class="btn btn-sm btn-icon" @click="closeOrderDetails" aria-label="Đóng">✕</button>
+        </div>
+        <div class="accounts-list account-details-list">
+          <div v-for="acc in detailOrder.accounts" :key="acc.id" class="account-line">
+            <code>{{ acc.data }}</code>
+            <button class="btn btn-sm btn-icon" @click="copyToClipboard(acc.data)" title="Copy">📋</button>
+          </div>
+        </div>
+      </div>
+    </div>
 </template>
 
 <script setup>
@@ -123,6 +145,8 @@ const loading = ref(true)
 const exporting = ref(false)
 const orders = ref([])
 const selectedOrderIds = ref([])
+const detailOrder = ref(null)
+const previewAccountLimit = 10
 const pagination = reactive({
   currentPage: 1,
   lastPage: 1,
@@ -183,6 +207,16 @@ const loadOrders = async () => {
 const changePage = (page) => {
   pagination.currentPage = page
   loadOrders()
+}
+
+const accountPreview = (accounts) => accounts.slice(0, previewAccountLimit)
+
+const showOrderDetails = (order) => {
+  detailOrder.value = order
+}
+
+const closeOrderDetails = () => {
+  detailOrder.value = null
 }
 
 const areAllOrdersSelected = computed(() =>
@@ -410,6 +444,60 @@ onMounted(loadOrders)
   color: var(--text-muted);
   margin-top: 0.75rem;
   text-align: right;
+}
+
+.accounts-more {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin: 0 1.25rem 1rem;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+}
+
+.account-details-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.account-details-dialog {
+  width: min(720px, 100%);
+  max-height: min(80vh, 720px);
+  padding: 1.25rem;
+  overflow: auto;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+}
+
+.account-details-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1rem;
+}
+
+.account-details-header h2 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.account-details-header p {
+  margin: 0.25rem 0 0;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
+
+.account-details-list {
+  gap: 0.5rem;
 }
 
 .btn-icon {

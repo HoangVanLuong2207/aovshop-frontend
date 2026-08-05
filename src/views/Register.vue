@@ -57,7 +57,7 @@
         </button>
       </form>
 
-      <div class="auth-divider"><span>hoáº·c</span></div>
+      <div class="auth-divider"><span>hoặc</span></div>
       <GoogleSignInButton @credential="handleGoogleLogin" @error="error = $event" />
 
       <p class="auth-footer">
@@ -121,10 +121,10 @@ const handleGoogleLogin = async (credential) => {
   error.value = ''
   try {
     await authStore.googleLogin(credential)
-    toast.success('ÄÄƒng nháº­p Google thÃ nh cÃ´ng!')
+    toast.success('Đăng nhập Google thành công!')
     router.push(authStore.isAdmin ? '/admin' : '/')
   } catch (err) {
-    error.value = err.response?.data?.message || 'ÄÄƒng nháº­p Google tháº¥t báº¡i'
+    error.value = err.response?.data?.message || 'Đăng nhập Google thất bại'
   } finally {
     loading.value = false
   }
@@ -184,7 +184,7 @@ const resendEmail = async () => {
   display: flex;
   align-items: center;
   gap: 1rem;
-  margin: 1.5rem 0 0;
+  margin: 1.5rem 0;
   color: var(--text-secondary);
   font-size: .85rem;
 }
@@ -234,4 +234,3 @@ const resendEmail = async () => {
   width: 100%;
 }
 </style>
-
