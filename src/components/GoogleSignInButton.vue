@@ -1,5 +1,5 @@
 <template>
-  <div class="google-sign-in">
+  <div class="google-sign-in" ref="container">
     <div v-if="clientId" ref="button" class="google-button"></div>
     <p v-else-if="loading" class="google-unavailable">Đang tải Google Sign-In...</p>
     <p v-else-if="!clientId && !loading" class="google-unavailable">Google Sign-In chưa được cấu hình.</p>
@@ -7,24 +7,29 @@
 </template>
 
 <script setup>
-import { onBeforeUnmount, onMounted, ref } from 'vue'
+import { onBeforeUnmount, onMounted, ref, nextTick } from 'vue'
 import { authApi } from '../api'
 
 const emit = defineEmits(['credential', 'error'])
 const button = ref(null)
+const container = ref(null)
 const clientId = ref(null)
 const loading = ref(true)
 let script
 
 const renderButton = () => {
-  if (!window.google?.accounts?.id || !button.value || !clientId.value) return
+  if (!window.google?.accounts?.id || !button.value) return
+  // Calculate width based on container, capped at reasonable bounds
+  const containerWidth = container.value?.offsetWidth || 300
+  const btnWidth = Math.min(containerWidth, 400)
+
   window.google.accounts.id.initialize({
     client_id: clientId.value,
     callback: (response) => emit('credential', response.credential),
     auto_select: false,
   })
   window.google.accounts.id.renderButton(button.value, {
-    type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', width: 370,
+    type: 'standard', theme: 'outline', size: 'large', text: 'continue_with', width: btnWidth,
   })
 }
 
@@ -49,8 +54,7 @@ onMounted(async () => {
   }
 
   if (clientId.value) {
-    // Wait for next tick so the v-if renders the button div
-    await new Promise(r => setTimeout(r, 0))
+    await nextTick()
     loadGsiScript()
   }
 })
@@ -60,6 +64,6 @@ onBeforeUnmount(() => script?.remove())
 
 <style scoped>
 .google-sign-in { margin-top: 1rem; }
-.google-button { display: flex; justify-content: center; }
+.google-button { display: flex; justify-content: center; overflow: hidden; }
 .google-unavailable { color: var(--text-secondary); font-size: .85rem; text-align: center; }
 </style>
