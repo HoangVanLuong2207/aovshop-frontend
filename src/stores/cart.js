@@ -22,19 +22,25 @@ export const useCartStore = defineStore('cart', {
             const existingItem = this.items.find(item => item.id === product.id)
             const isPreorder = product.is_preorder || false
             const availableStock = product.stock || 0
+            const minimumQuantity = Math.max(1, Number(product.minimum_order_quantity) || 1)
 
             if (existingItem) {
                 const newQuantity = existingItem.quantity + quantity
                 // Pre-order: no stock limit; instant: limit by available stock
                 const safeStock = availableStock > 0 ? availableStock : (existingItem.stock || existingItem.quantity || 1)
-                existingItem.quantity = isPreorder ? newQuantity : Math.min(Math.max(1, newQuantity), safeStock)
+                existingItem.quantity = isPreorder
+                    ? Math.max(minimumQuantity, newQuantity)
+                    : Math.min(Math.max(minimumQuantity, newQuantity), safeStock)
                 if (!isPreorder) {
                     existingItem.stock = safeStock
                 }
                 existingItem.is_preorder = isPreorder
                 existingItem.daily_buy_limit = product.daily_buy_limit || null
+                existingItem.minimum_order_quantity = product.minimum_order_quantity || null
             } else {
-                const safeInitialQuantity = isPreorder ? Math.max(1, quantity) : Math.max(1, Math.min(quantity, availableStock || 1))
+                const safeInitialQuantity = isPreorder
+                    ? Math.max(minimumQuantity, quantity)
+                    : Math.min(Math.max(minimumQuantity, quantity), availableStock || 1)
                 this.items.push({
                     id: product.id,
                     name: product.name,
@@ -46,6 +52,7 @@ export const useCartStore = defineStore('cart', {
                     is_preorder: isPreorder,
                     preorder_placeholder: product.preorder_placeholder,
                     daily_buy_limit: product.daily_buy_limit || null,
+                    minimum_order_quantity: product.minimum_order_quantity || null,
                 })
             }
 
@@ -55,8 +62,9 @@ export const useCartStore = defineStore('cart', {
         updateQuantity(productId, quantity, stock) {
             const item = this.items.find(item => item.id === productId)
             if (item) {
+                const minimumQuantity = Math.max(1, Number(item.minimum_order_quantity) || 1)
                 if (item.is_preorder) {
-                    item.quantity = Math.max(1, quantity)
+                    item.quantity = Math.max(minimumQuantity, quantity)
                     this.saveToStorage()
                     return
                 }
@@ -64,7 +72,7 @@ export const useCartStore = defineStore('cart', {
                 const safeStock = Number.isFinite(requestedStock) && requestedStock > 0
                     ? requestedStock
                     : Math.max(1, Number(item.quantity) || 1)
-                item.quantity = Math.min(Math.max(1, quantity), safeStock)
+                item.quantity = Math.min(Math.max(minimumQuantity, quantity), safeStock)
                 item.stock = safeStock
                 this.saveToStorage()
             }

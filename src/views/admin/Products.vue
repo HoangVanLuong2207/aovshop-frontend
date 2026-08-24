@@ -332,6 +332,13 @@
               Số lượng tối đa mỗi tài khoản được mua sản phẩm này trong 1 ngày. Để 0 hoặc trống = không giới hạn.
             </small>
           </div>
+          <div class="form-group">
+            <label class="form-label">Số lượng mua tối thiểu</label>
+            <input v-model.number="form.minimum_order_quantity" type="number" class="form-input" min="0" placeholder="0 = Không áp dụng" />
+            <small class="text-muted d-block mt-1">
+              Số lượng tối thiểu khách phải mua cho sản phẩm này trong mỗi lần đặt hàng. Để 0 hoặc trống = không áp dụng.
+            </small>
+          </div>
         </div>
         <div class="modal-footer">
           <button class="btn btn-secondary" @click="closeModal">Hủy</button>
@@ -393,6 +400,7 @@ const form = reactive({
   is_preorder: false,
   preorder_placeholder: '',
   daily_buy_limit: null,
+  minimum_order_quantity: null,
 })
 
 // Gallery image management
@@ -761,6 +769,7 @@ const openModal = (product = null) => {
       is_preorder: product.isPreorder || false,
       preorder_placeholder: product.preorderPlaceholder || '',
       daily_buy_limit: product.dailyBuyLimit || product.daily_buy_limit || null,
+      minimum_order_quantity: product.minimumOrderQuantity || product.minimum_order_quantity || null,
     })
   } else {
     Object.assign(form, {
@@ -776,6 +785,7 @@ const openModal = (product = null) => {
       is_preorder: false,
       preorder_placeholder: '',
       daily_buy_limit: null,
+      minimum_order_quantity: null,
     })
   }
   newImageUrl.value = ''
@@ -816,6 +826,7 @@ const saveProduct = async () => {
       is_preorder: form.is_preorder,
       preorder_placeholder: form.preorder_placeholder,
       daily_buy_limit: form.daily_buy_limit || null,
+      minimum_order_quantity: form.minimum_order_quantity || null,
     }
 
     if (editing.value) {

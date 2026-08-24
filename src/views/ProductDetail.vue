@@ -74,6 +74,10 @@
             <span>Giới hạn: Tối đa <strong>{{ product.daily_buy_limit }}</strong> sản phẩm / ngày / tài khoản</span>
           </div>
 
+          <div v-if="product.minimum_order_quantity" class="daily-limit-notice">
+            <span>Đơn tối thiểu: <strong>{{ product.minimum_order_quantity }}</strong> sản phẩm</span>
+          </div>
+
           <div class="product-description" v-if="product.description">
             <h3>Mô tả</h3>
             <p>{{ product.description }}</p>
@@ -82,13 +86,13 @@
           <div class="product-actions">
             <!-- Quantity control: no max limit for preorder, stock-limited for instant -->
             <div class="quantity-control">
-              <button @click="quantity = Math.max(1, quantity - 1)">-</button>
+              <button @click="quantity = Math.max(minimumQuantity, quantity - 1)">-</button>
               <input
                 type="number"
                 :value="quantity"
                 @input="onQuantityInput"
                 @blur="onQuantityBlur"
-                min="1"
+                :min="minimumQuantity"
                 :max="isPreorder ? 9999 : product.stock"
               />
               <button @click="isPreorder ? quantity++ : quantity = Math.min(product.stock, quantity + 1)">+</button>
@@ -147,12 +151,14 @@ const loading = ref(true)
 const product = ref(null)
 const quantity = ref(1)
 
+const minimumQuantity = computed(() => Math.max(1, Number(product.value?.minimum_order_quantity) || 1))
+
 const onQuantityInput = (event) => {
   const val = event.target.value
   if (val === '') return
   let num = parseInt(val, 10)
-  if (isNaN(num) || num < 1) {
-    num = 1
+  if (isNaN(num) || num < minimumQuantity.value) {
+    num = minimumQuantity.value
   }
   const maxStock = isPreorder.value ? 9999 : (product.value?.stock || 9999)
   if (num > maxStock) {
@@ -165,8 +171,8 @@ const onQuantityInput = (event) => {
 const onQuantityBlur = (event) => {
   const val = event.target.value
   let num = parseInt(val, 10)
-  if (isNaN(num) || num < 1) {
-    num = 1
+  if (isNaN(num) || num < minimumQuantity.value) {
+    num = minimumQuantity.value
   }
   const maxStock = isPreorder.value ? 9999 : (product.value?.stock || 9999)
   if (num > maxStock) {
@@ -257,6 +263,7 @@ onMounted(async () => {
   try {
     const response = await shopApi.getProduct(route.params.id)
     product.value = response.data
+    quantity.value = minimumQuantity.value
   } catch (error) {
     console.error('Failed to load product:', error)
   } finally {
