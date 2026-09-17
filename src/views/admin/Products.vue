@@ -341,7 +341,7 @@
           </div>
           <div class="form-group">
             <label class="form-label">⏱️ Gói Checkpass (số giờ)</label>
-            <input v-model.number="form.checkpass_hours" type="number" class="form-input" min="0" placeholder="0 = sản phẩm thường" />
+            <input v-model.number="form.checkpass_hours" type="number" class="form-input" min="0" max="8760" step="0.5" placeholder="0 = sản phẩm thường" />
             <small class="text-muted d-block mt-1">
               Nhập số giờ lớn hơn 0 để tự cấp key Checkpass sau khi thanh toán. Mỗi đơn chỉ nhận một key, thời hạn được cộng theo số lượng mua.
             </small>
