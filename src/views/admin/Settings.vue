@@ -337,6 +337,7 @@
               <option value="TPB">TPBank</option>
               <option value="BIDV">BIDV</option>
               <option value="VIB">VIB</option>
+              <option value="KLB">KienLongBank</option>
             </select>
           </div>
           <div class="form-group">
