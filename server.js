@@ -150,15 +150,14 @@ app.get('/health', (req, res) => {
 app.use('/api', createProxyMiddleware({
     target: BACKEND_URL,
     changeOrigin: true,
-    pathRewrite: {
-        '^/api': '/api', // keep /api in the forwarded path
-    },
+    pathRewrite: (requestPath) => `/api${requestPath}`,
 }));
 
 // Proxy /uploads requests to the backend
 app.use('/uploads', createProxyMiddleware({
     target: BACKEND_URL,
     changeOrigin: true,
+    pathRewrite: (requestPath) => `/uploads${requestPath}`,
 }));
 
 // Serve static files from dist folder with correct charset
