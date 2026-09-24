@@ -27,6 +27,7 @@ import AdminOrders from '../views/admin/Orders.vue'
 import AdminPromotions from '../views/admin/Promotions.vue'
 import AdminTransactions from '../views/admin/Transactions.vue'
 import AdminDeposits from '../views/admin/Deposits.vue'
+import AdminUsers from '../views/admin/Users.vue'
 import AdminSettings from '../views/admin/Settings.vue'
 
 const routes = [
@@ -92,7 +93,7 @@ const routes = [
             { path: 'promotions', name: 'admin-promotions', component: AdminPromotions },
             { path: 'transactions', name: 'admin-transactions', component: AdminTransactions },
             { path: 'deposits', name: 'admin-deposits', component: AdminDeposits },
-            { path: 'users', name: 'admin-users', component: () => import('../views/admin/Users.vue') },
+            { path: 'users', name: 'admin-users', component: AdminUsers },
             { path: 'settings', name: 'admin-settings', component: AdminSettings },
         ],
     },
