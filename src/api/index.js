@@ -144,3 +144,9 @@ export const adminApi = {
   testPush: () => api.post('/admin/test-push'),
   testTelegram: () => api.post('/admin/test-telegram'),
 }
+
+// Checkpass SSO API
+export const checkpassApi = {
+  createSsoTicket: (returnUrl) => api.post('/checkpass/sso/ticket', { return_url: returnUrl }),
+  getStatus: () => api.get('/checkpass/status'),
+}
