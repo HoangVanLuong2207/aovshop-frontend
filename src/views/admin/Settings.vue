@@ -295,9 +295,43 @@
           />
           <small>Khách hàng không thể tạo đơn nạp thấp hơn số tiền này.</small>
         </div>
+        <div class="form-group">
+          <label class="checkbox-label">
+            <input v-model="settings.checkpass_deposit_bonus_enabled" type="checkbox" />
+            Bật khuyến mãi nạp tiền cho Checkpass
+          </label>
+          <small>Tiền thưởng được lưu riêng và không thể dùng để mua sản phẩm thường của shop.</small>
+        </div>
+        <template v-if="settings.checkpass_deposit_bonus_enabled">
+          <div class="form-group">
+            <label>Đơn nạp tối thiểu nhận khuyến mãi (VNĐ)</label>
+            <input
+              v-model.number="settings.checkpass_deposit_bonus_minimum_amount"
+              type="number"
+              class="form-input"
+              min="1"
+              max="1000000000"
+              step="1"
+              required
+            />
+          </div>
+          <div class="form-group">
+            <label>Phần trăm tiền thưởng Checkpass (%)</label>
+            <input
+              v-model.number="settings.checkpass_deposit_bonus_percent"
+              type="number"
+              class="form-input"
+              min="0.01"
+              max="1000"
+              step="0.01"
+              required
+            />
+            <small>Ví dụ: nạp 100.000đ với mức 10% sẽ nhận thêm 10.000đ chỉ dùng cho Checkpass.</small>
+          </div>
+        </template>
         <div class="form-actions">
           <button type="submit" class="btn btn-primary" :disabled="saving">
-            {{ saving ? 'Đang lưu...' : '💾 Lưu mức nạp tối thiểu' }}
+            {{ saving ? 'Đang lưu...' : '💾 Lưu cấu hình nạp tiền' }}
           </button>
         </div>
       </form>
@@ -480,6 +514,9 @@ const settings = ref({
   brevo_sender_email: '',
   google_client_id: '',
   minimum_deposit_amount: 10000,
+  checkpass_deposit_bonus_enabled: false,
+  checkpass_deposit_bonus_minimum_amount: 10000,
+  checkpass_deposit_bonus_percent: 0,
 })
 
 const showToken = ref(false)
@@ -521,11 +558,14 @@ const loadSettings = async () => {
     Object.keys(settings.value).forEach(key => {
       if (data[key] !== undefined) {
         // Handle special type conversions
-        if (key === 'notification_enabled' || key === 'push_enabled') {
-          filteredData[key] = data[key] === 'true' || data[key] === true
-        } else if (key === 'minimum_deposit_amount') {
+        if (key === 'notification_enabled' || key === 'push_enabled' || key === 'checkpass_deposit_bonus_enabled') {
+          filteredData[key] = data[key] === 'true' || data[key] === '1' || data[key] === true
+        } else if (key === 'minimum_deposit_amount' || key === 'checkpass_deposit_bonus_minimum_amount') {
           const parsedAmount = Number(data[key])
           filteredData[key] = Number.isInteger(parsedAmount) && parsedAmount > 0 ? parsedAmount : 10000
+        } else if (key === 'checkpass_deposit_bonus_percent') {
+          const parsedPercent = Number(data[key])
+          filteredData[key] = Number.isFinite(parsedPercent) && parsedPercent >= 0 ? parsedPercent : 0
         } else {
           filteredData[key] = data[key]
         }
@@ -564,7 +604,7 @@ const saveSettings = async () => {
       let val = settings.value[key]
       
       // Convert boolean to string for backend persistence
-      if (key === 'notification_enabled' || key === 'push_enabled') {
+      if (key === 'notification_enabled' || key === 'push_enabled' || key === 'checkpass_deposit_bonus_enabled') {
         val = val ? 'true' : 'false'
       }
       

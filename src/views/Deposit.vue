@@ -45,6 +45,14 @@
             <div v-if="amount && amount < minimumDepositAmount" class="error-message">
               ⚠️ Số tiền tối thiểu là {{ formatPrice(minimumDepositAmount) }}
             </div>
+            <div v-if="promotion.enabled" class="important-note" style="margin: 14px 0;">
+              🎁 Nạp từ <strong>{{ formatPrice(promotion.minimumAmount) }}</strong> được tặng
+              <strong>{{ promotion.bonusPercent }}%</strong> vào ví Checkpass.
+              <div v-if="estimatedBonus > 0">
+                Đơn này dự kiến nhận thêm <strong>{{ formatPrice(estimatedBonus) }}</strong>.
+              </div>
+              <small>Tiền thưởng chỉ dùng cho Checkpass, không dùng để mua sản phẩm khác.</small>
+            </div>
 
             <button 
               class="btn btn-primary btn-lg create-btn"
@@ -101,6 +109,10 @@
                   <strong class="text-success">{{ formatPrice(paymentInfo.amount) }}</strong>
                   <button class="btn-copy" @click="copy(paymentInfo.amount)">📋</button>
                 </div>
+                <div v-if="Number(paymentInfo.checkpass_bonus_amount || 0) > 0" class="info-row">
+                  <span>Thưởng Checkpass:</span>
+                  <strong class="text-success">+{{ formatPrice(paymentInfo.checkpass_bonus_amount) }}</strong>
+                </div>
               </div>
             </div>
 
@@ -123,6 +135,7 @@
               <div class="success-icon">✅</div>
               <h2>Nạp tiền thành công!</h2>
               <p>Số tiền <strong>{{ formatPrice(lastDepositAmount) }}</strong> đã được cộng vào tài khoản.</p>
+              <p v-if="lastBonusAmount > 0">Bạn nhận thêm <strong>{{ formatPrice(lastBonusAmount) }}</strong> vào ví khuyến mãi Checkpass.</p>
               <p class="new-balance">Số dư mới: <strong>{{ formatPrice(authStore.balance) }}</strong></p>
               <button class="btn btn-primary" @click="paymentSuccess = false">Đóng</button>
             </div>
@@ -162,6 +175,10 @@
                       <span>Số tiền:</span>
                       <strong class="text-success">{{ formatPrice(paymentInfo.amount) }}</strong>
                       <button class="btn-copy" type="button" title="Sao chép số tiền" aria-label="Sao chép số tiền" @click="copy(paymentInfo.amount)">📋</button>
+                    </div>
+                    <div v-if="Number(paymentInfo.checkpass_bonus_amount || 0) > 0" class="info-row static-row">
+                      <span>Thưởng Checkpass:</span>
+                      <strong class="text-success">+{{ formatPrice(paymentInfo.checkpass_bonus_amount) }}</strong>
                     </div>
                     <div class="info-row highlight transfer-row">
                       <span>Nội dung:</span>
@@ -265,6 +282,7 @@ const transactions = ref([])
 const paymentInfo = ref(null)
 const paymentSuccess = ref(false)
 const lastDepositAmount = ref(0)
+const lastBonusAmount = ref(0)
 const currentPage = ref(1)
 const perPage = 10
 const showPaymentModal = ref(false)
@@ -272,6 +290,7 @@ const activeBanks = ref([])
 const selectedBank = ref(null)
 const minimumDepositAmount = ref(10000)
 const depositConfigLoading = ref(true)
+const promotion = ref({ enabled: false, minimumAmount: 10000, bonusPercent: 0 })
 let pollInterval = null
 
 const quickAmounts = [50000, 100000, 200000, 500000, 1000000]
@@ -279,6 +298,11 @@ const availableQuickAmounts = computed(() => {
   return [...new Set([minimumDepositAmount.value, ...quickAmounts])]
     .filter(value => value >= minimumDepositAmount.value)
     .sort((a, b) => a - b)
+})
+const estimatedBonus = computed(() => {
+  const value = Number(amount.value || 0)
+  if (!promotion.value.enabled || value < promotion.value.minimumAmount) return 0
+  return Math.round(value * promotion.value.bonusPercent * 10) / 1000
 })
 
 const formatPrice = (price) => {
@@ -371,6 +395,12 @@ const fetchDepositConfig = async () => {
     if (Number.isInteger(configuredAmount) && configuredAmount > 0) {
       minimumDepositAmount.value = configuredAmount
     }
+    const promo = response.data?.checkpass_deposit_promotion || {}
+    promotion.value = {
+      enabled: promo.enabled === true,
+      minimumAmount: Number(promo.minimum_amount) || 10000,
+      bonusPercent: Number(promo.bonus_percent) || 0,
+    }
   } catch (error) {
     console.error('Failed to fetch deposit config:', error)
   } finally {
@@ -424,9 +454,10 @@ const checkStatus = async () => {
     const response = await api.get(`/deposit/status/${paymentInfo.value.content}`)
     if (response.data.status === 'completed') {
       lastDepositAmount.value = response.data.amount
+      lastBonusAmount.value = Number(response.data.checkpass_bonus_amount || 0)
       stopPolling()
       paymentSuccess.value = true
-      authStore.fetchProfile()
+      await authStore.fetchProfile()
       loadTransactions()
       paymentInfo.value = null
       amount.value = null
